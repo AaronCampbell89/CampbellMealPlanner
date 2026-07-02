@@ -1,0 +1,3350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Recipe Collection</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #FAF7F2;
+    --card:     #FFFFFF;
+    --green:    #2C4A3E;
+    --green-lt: #3D6356;
+    --terra:    #C4622D;
+    --terra-lt: #E07848;
+    --cream:    #F0EBE1;
+    --text:     #2A2A2A;
+    --muted:    #7A7060;
+    --border:   #E2DAD0;
+    --shadow:   0 2px 12px rgba(44,74,62,0.08);
+    --shadow-hover: 0 8px 32px rgba(44,74,62,0.15);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--green);
+    color: white;
+    padding: 48px 24px 40px;
+    text-align: center;
+  }
+  header .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 10px;
+  }
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+  header h1 em {
+    font-style: italic;
+    color: #A8D5B5;
+  }
+  header .subtitle {
+    font-size: 14px;
+    color: rgba(255,255,255,0.6);
+    font-weight: 300;
+  }
+  .recipe-count-badge {
+    display: inline-block;
+    background: var(--terra);
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-top: 14px;
+  }
+
+  /* ── STICKY CONTROLS ── */
+  .controls {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .controls-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 220px;
+  }
+  .search-wrap svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+  }
+  input[type="search"] {
+    width: 100%;
+    padding: 10px 14px 10px 38px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    background: white;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type="search"]:focus { border-color: var(--green); }
+  input[type="search"]::placeholder { color: var(--muted); }
+
+  .pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .pill {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: white;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.18s;
+    white-space: nowrap;
+  }
+  .pill:hover { border-color: var(--green); color: var(--green); }
+  .pill.active { background: var(--green); border-color: var(--green); color: white; }
+
+  .controls-row-2 {
+    margin-top: 10px;
+    justify-content: flex-start;
+  }
+  .veg-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px 6px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .veg-toggle:hover { border-color: #3A7D44; color: #3A7D44; }
+  .veg-toggle-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: white;
+    display: inline-block;
+    position: relative;
+    transition: all 0.18s;
+    flex-shrink: 0;
+  }
+  .veg-toggle[aria-pressed="true"] {
+    background: var(--bg-active, #EAF5EC);
+    border-color: var(--border-active, #3A7D44);
+    color: var(--text-active, #2C6B3A);
+  }
+  .veg-toggle[aria-pressed="true"] .veg-toggle-dot {
+    background: var(--dot-active, #3A7D44);
+    border-color: var(--dot-active, #3A7D44);
+  }
+  .veg-toggle[aria-pressed="true"] .veg-toggle-dot::after {
+    content: '✓';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 9px;
+    color: white;
+    line-height: 1;
+  }
+
+  .source-select-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 4px;
+  }
+  .source-select-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .source-select {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 28px 6px 14px;
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%237A7060' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    transition: border-color 0.18s;
+    max-width: 220px;
+  }
+  .source-select:hover { border-color: var(--green); }
+  .source-select:focus { border-color: var(--green); }
+
+  /* ── MAIN GRID ── */
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px 100px;
+  }
+
+  .results-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+  .results-label strong { color: var(--text); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+
+  /* ── RECIPE CARD ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.2s, transform 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+  .card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+
+  .card-header {
+    padding: 20px 20px 16px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .card-title-group { flex: 1; }
+  .card-stamp {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--terra);
+    background: #FDF0E8;
+    border: 1px solid #F2C9B0;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+  .card-stamp.veg { color: #3A7D44; background: #EAF5EC; border-color: #B2D9B8; }
+  .card-stamp.gf  { color: #5B6FA8; background: #EEF0FA; border-color: #C0C8EE; }
+  .card-stamp.breakfast { color: #8A5A00; background: #FFF3DC; border-color: #F5D98A; }
+  .card-stamp.baking { color: #7A2D6C; background: #F9EDF7; border-color: #E0B8D8; }
+  .card-stamp.bread  { color: #6B4C1E; background: #FBF3E8; border-color: #DFC8A0; }
+  .card-stamp.salad  { color: #2C6B4A; background: #E8F5EF; border-color: #A8D8C0; }
+  .card-stamp.dessert{ color: #8B2252; background: #FAEDF2; border-color: #E8B0CB; }
+  .card-stamp.kids   { color: #B8551A; background: #FEF0E4; border-color: #F0C49A; }
+
+  .card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.25;
+    color: var(--green);
+  }
+  .card-meta {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    flex-wrap: wrap;
+  }
+  .card-meta span { display: flex; align-items: center; gap: 4px; }
+
+  .expand-btn {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--cream);
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 18px;
+    line-height: 1;
+    user-select: none;
+  }
+  .card.open .expand-btn { background: var(--green); color: white; border-color: var(--green); }
+
+  /* ── CARD BODY (expanded) ── */
+  .card-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease;
+    border-top: 0 solid var(--border);
+  }
+  .card.open .card-body {
+    max-height: 1800px;
+    border-top-width: 1px;
+  }
+  .card-body-inner { padding: 20px; }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--terra);
+    margin-bottom: 10px;
+    margin-top: 18px;
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  .ingredient-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .ingredient-list li {
+    font-size: 13.5px;
+    padding-left: 14px;
+    position: relative;
+    color: var(--text);
+    line-height: 1.45;
+  }
+  .ingredient-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--terra);
+  }
+
+  .method-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .method-list li {
+    font-size: 13.5px;
+    padding-left: 28px;
+    position: relative;
+    line-height: 1.55;
+  }
+  .method-list li .step-num {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--green);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .note-box {
+    background: var(--cream);
+    border-left: 3px solid var(--terra);
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+
+  .source-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 16px;
+    text-decoration: none;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    transition: all 0.15s;
+  }
+  .source-link:hover { color: var(--green); border-color: var(--green); }
+
+  /* ── NO RESULTS ── */
+  .no-results {
+    text-align: center;
+    padding: 80px 24px;
+    color: var(--muted);
+    grid-column: 1 / -1;
+  }
+  .no-results svg { opacity: 0.25; margin-bottom: 16px; }
+  .no-results p { font-size: 15px; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 32px;
+    font-size: 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 600px) {
+    header { padding: 32px 16px; }
+    .controls { padding: 12px 16px; }
+    main { padding: 20px 16px 60px; }
+    .grid { grid-template-columns: 1fr; gap: 14px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card, .card-body, .pill, .expand-btn { transition: none; }
+  }
+
+  /* ── SELECT CHECKBOX ── */
+  .select-wrap {
+    display: flex;
+    align-items: flex-start;
+    padding-top: 2px;
+  }
+  .select-checkbox {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    border: 2px solid var(--border);
+    background: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .select-checkbox:hover { border-color: var(--terra); }
+  .select-checkbox.checked {
+    background: var(--terra);
+    border-color: var(--terra);
+  }
+  .select-checkbox svg { display: none; color: white; }
+  .select-checkbox.checked svg { display: block; }
+  .card.selected {
+    outline: 2px solid var(--terra);
+    outline-offset: -1px;
+  }
+
+  /* ── SHOPPING TRAY (floating bottom bar) ── */
+  .shopping-tray {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    background: var(--green);
+    color: white;
+    padding: 14px 24px;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    transform: translateY(120%);
+    transition: transform 0.3s ease;
+  }
+  .shopping-tray.visible { transform: translateY(0); }
+  .shopping-tray-inner {
+    max-width: 1200px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .shopping-tray-count {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .shopping-tray-count strong { color: #A8D5B5; }
+  .tray-actions { display: flex; gap: 10px; align-items: center; }
+  .btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-primary {
+    background: var(--terra);
+    color: white;
+  }
+  .btn-primary:hover { background: var(--terra-lt); }
+  .btn-ghost {
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .btn-ghost:hover { color: white; border-color: white; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(20,30,25,0.55);
+    z-index: 300;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .modal-overlay.visible { display: flex; }
+  .modal {
+    background: var(--bg);
+    border-radius: 14px;
+    max-width: 640px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .modal-header {
+    background: var(--green);
+    color: white;
+    padding: 24px 28px;
+    position: sticky;
+    top: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .modal-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .modal-header p {
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 4px;
+  }
+  .modal-close {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    color: white;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .modal-close:hover { background: rgba(255,255,255,0.25); }
+  .modal-body { padding: 24px 28px 32px; }
+
+  .shop-group { margin-bottom: 22px; }
+  .shop-group-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--terra);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .shop-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 14px;
+  }
+  .shop-item-check {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1.5px solid var(--border);
+    flex-shrink: 0;
+    margin-top: 2px;
+    cursor: pointer;
+  }
+  .shop-item-check.checked { background: var(--green); border-color: var(--green); }
+  .shop-item-text.struck { text-decoration: line-through; color: var(--muted); }
+
+  .shop-recipes-used {
+    margin-top: 28px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+  .shop-recipes-used p:first-child {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .recipe-chip {
+    display: inline-block;
+    font-size: 12px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 4px 10px;
+    border-radius: 14px;
+    margin: 0 6px 6px 0;
+  }
+
+  .modal-footer-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 600px) {
+    .shopping-tray { padding: 12px 16px; }
+    .shopping-tray-inner { justify-content: center; text-align: center; }
+    .modal-header, .modal-body { padding-left: 18px; padding-right: 18px; }
+  }
+
+  /* ── SCALE TOGGLE ── */
+  .scale-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .scale-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .scale-toggle {
+    display: inline-flex;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    overflow: hidden;
+  }
+  .scale-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 9px;
+    border: none;
+    background: white;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    border-right: 1px solid var(--border);
+  }
+  .scale-btn:last-child { border-right: none; }
+  .scale-btn:hover { color: var(--green); background: var(--cream); }
+  .scale-btn.active {
+    background: var(--green);
+    color: white;
+  }
+  .scaled-note {
+    font-size: 10px;
+    color: var(--terra);
+    font-style: italic;
+  }
+
+  .card-badges {
+    display: flex;
+    gap: 5px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 10px;
+    letter-spacing: 0.04em;
+  }
+  .badge-kid   { background: #FEF0E4; color: #B8551A; border: 1px solid #F0C49A; }
+  .badge-batch { background: #EEF0FA; color: #3D52A0; border: 1px solid #C0C8EE; }
+  .badge-aaron { background: #FDF4FF; color: #7B2D8B; border: 1px solid #DBA8EC; }
+  .badge-katie { background: #FFF0F5; color: #C2185B; border: 1px solid #F4A0C0; }
+
+  /* ── PROFILE SWITCHER ── */
+  .profile-bar {
+    background: var(--cream);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+  }
+  .profile-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .profile-btns {
+    display: flex;
+    gap: 6px;
+  }
+  .profile-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: white;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--muted);
+  }
+  .profile-btn:hover { border-color: var(--green); color: var(--green); }
+  .profile-btn.active-aaron {
+    background: #FDF4FF;
+    border-color: #7B2D8B;
+    color: #7B2D8B;
+  }
+  .profile-btn.active-katie {
+    background: #FFF0F5;
+    border-color: #C2185B;
+    color: #C2185B;
+  }
+
+  /* ── STAR FAV BUTTON ON CARD ── */
+  .star-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 2px 4px;
+    line-height: 1;
+    opacity: 0.25;
+    transition: opacity 0.15s, transform 0.15s;
+    flex-shrink: 0;
+  }
+  .star-btn:hover { opacity: 0.6; transform: scale(1.2); }
+  .star-btn.starred { opacity: 1; }
+  .star-btn.starred-aaron { color: #7B2D8B; }
+  .star-btn.starred-katie { color: #C2185B; }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Family Favourites</p>
+  <h1>My <em>Recipe</em> Collection</h1>
+  <p class="subtitle">Everything in one place — from weeknight dinners to weekend baking</p>
+  <span class="recipe-count-badge" id="totalCount">55 recipes</span>
+</header>
+
+<div class="profile-bar">
+  <span class="profile-label">Starring as:</span>
+  <div class="profile-btns">
+    <button class="profile-btn" id="profileNone" onclick="setProfile(null)">None</button>
+    <button class="profile-btn" id="profileAaron" onclick="setProfile('aaron')">⭐ Aaron</button>
+    <button class="profile-btn" id="profileKatie" onclick="setProfile('katie')">⭐ Katie</button>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="controls-inner">
+    <div class="search-wrap">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="search" id="searchInput" placeholder="Search recipes, ingredients…" autocomplete="off">
+    </div>
+    <div class="pills" id="pillContainer">
+      <button class="pill active" data-cat="all">All</button>
+      <button class="pill" data-cat="Mains">Mains</button>
+      <button class="pill" data-cat="Breakfast">Breakfast</button>
+      <button class="pill" data-cat="Kids">Kids</button>
+      <button class="pill" data-cat="Bread">Bread & Sides</button>
+      <button class="pill" data-cat="Baking">Baking & Desserts</button>
+    </div>
+  </div>
+  <div class="controls-inner controls-row-2">
+    <button class="veg-toggle" id="vegToggle" aria-pressed="false">
+      <span class="veg-toggle-dot"></span> Veg only
+    </button>
+    <button class="veg-toggle" id="kidToggle" aria-pressed="false">
+      <span class="veg-toggle-dot"></span> Kid friendly
+    </button>
+    <button class="veg-toggle" id="batchToggle" aria-pressed="false">
+      <span class="veg-toggle-dot"></span> Batch cook
+    </button>
+    <button class="veg-toggle" id="aaronToggle" aria-pressed="false" style="--dot-active:#7B2D8B; --border-active:#7B2D8B; --bg-active:#FDF4FF; --text-active:#7B2D8B;">
+      <span class="veg-toggle-dot"></span> Aaron's favs
+    </button>
+    <button class="veg-toggle" id="katieToggle" aria-pressed="false" style="--dot-active:#C2185B; --border-active:#C2185B; --bg-active:#FFF0F5; --text-active:#C2185B;">
+      <span class="veg-toggle-dot"></span> Katie's favs
+    </button>
+    <div class="source-select-wrap">
+      <label for="sourceSelect" class="source-select-label">Source:</label>
+      <select id="sourceSelect" class="source-select">
+        <option value="all">All sources</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<main>
+  <p class="results-label" id="resultsLabel">Showing <strong id="visibleCount">55</strong> recipes</p>
+  <div class="grid" id="recipeGrid"></div>
+</main>
+
+<!-- Shopping Tray -->
+<div class="shopping-tray" id="shoppingTray">
+  <div class="shopping-tray-inner">
+    <div class="shopping-tray-count">
+      <strong id="trayCount">0</strong> recipe<span id="trayPlural">s</span> selected for this week
+    </div>
+    <div class="tray-actions">
+      <button class="btn btn-ghost" onclick="clearSelection()">Clear</button>
+      <button class="btn btn-primary" onclick="openShoppingList()">Build shopping list</button>
+    </div>
+  </div>
+</div>
+
+<!-- Shopping List Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this) closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h2>This Week's Shopping List</h2>
+        <p id="modalSubtitle">Consolidated from selected recipes</p>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<footer>
+  <p>Personal recipe collection · Built for offline & online use</p>
+</footer>
+
+<script>
+const RECIPES = [
+  // ── MAINS ────────────────────────────────────────────────────────────────
+  {
+    id: 1, name: "Katsu Curry", cat: "Mains", stamp: "Mains",
+    serves: "4", time: "45 mins", source: "Online",
+    note: "Great batch cook — double the sauce and freeze. Use mild curry powder for kids.",
+    ingredients: [
+      "1 tbsp vegetable oil",
+      "1 onion, roughly chopped",
+      "2 medium carrots, roughly chopped",
+      "2 garlic cloves, grated",
+      "1 tbsp fresh ginger, grated",
+      "1 tbsp mild curry powder",
+      "½ tsp turmeric",
+      "400ml coconut milk",
+      "1 tbsp maple syrup or honey",
+      "100ml water",
+      "For the katsu: 4 chicken breasts (or tofu for vegan)",
+      "3 tbsp cornflour",
+      "4 tbsp water (for cornflour mixture)",
+      "150g breadcrumbs (GF if needed)",
+      "Vegetable oil for frying",
+      "To serve: cooked rice, cucumber & carrot ribbons, lime wedges"
+    ],
+    method: [
+      "Heat oil and cook the onion and carrots for 8 mins until softening. Add garlic and ginger for 30 secs, then stir in curry powder and turmeric.",
+      "Add coconut milk, maple syrup and 100ml water. Season, cover and simmer on low for 20 mins.",
+      "Blitz the sauce until smooth. Add water if too thick.",
+      "Dip chicken in cornflour mixture then coat in breadcrumbs.",
+      "Fry chicken in hot oil for 4–5 mins each side until golden and cooked through.",
+      "Serve on rice with sauce, cucumber, carrot ribbons and lime."
+    ]
+  },
+  {
+    id: 2, name: "Spanish Meatball & Butter Bean Stew", cat: "Mains", stamp: "Mains", isAaronFav: true,
+    serves: "4", time: "35 mins", source: "Online",
+    ingredients: [
+      "500g pork mince",
+      "1 tbsp olive oil",
+      "1 onion, finely chopped",
+      "2 peppers (red and/or green), sliced",
+      "2 garlic cloves, sliced",
+      "2 tsp smoked paprika",
+      "1 x 400g can chopped tomatoes",
+      "Pinch of sugar",
+      "1 x 400g can butter beans, drained",
+      "Small bunch of parsley, chopped",
+      "Salt and pepper, crusty bread to serve"
+    ],
+    method: [
+      "Season mince and shape into small meatballs.",
+      "Heat oil and brown meatballs all over for 5 mins. Push to one side.",
+      "Add onion and peppers, cook 5 mins. Stir in garlic and paprika for 1 min.",
+      "Add tomatoes, cover and simmer 10 mins.",
+      "Uncover, stir in butter beans, sugar and seasoning. Simmer 10 mins more.",
+      "Stir in parsley and serve with crusty bread."
+    ]
+  },
+  {
+    id: 3, name: "Chicken & Chorizo Jambalaya", cat: "Mains", stamp: "Mains",
+    serves: "4", time: "45 mins", source: "Online",
+    ingredients: [
+      "1 tbsp olive oil",
+      "2 chicken breasts, chopped",
+      "1 onion, diced",
+      "1 red pepper, thinly sliced",
+      "2 garlic cloves, crushed",
+      "75g chorizo, sliced",
+      "1 tbsp Cajun seasoning",
+      "250g long-grain rice",
+      "1 x 400g can chopped tomatoes",
+      "500ml chicken stock"
+    ],
+    method: [
+      "Brown chicken in hot oil for 5–8 mins. Remove and set aside.",
+      "Soften onion 3–4 mins. Add pepper, garlic, chorizo and Cajun seasoning for 5 mins.",
+      "Return chicken. Add rice and tomatoes, pour in stock and stir.",
+      "Cover and simmer 20–25 mins until rice is tender.",
+      "Season and serve."
+    ]
+  },
+  {
+    id: 6, name: "Cottage Pie", cat: "Mains", stamp: "Mains",
+    serves: "10", time: "1 hr 30 mins", source: "Online",
+    note: "Halve quantities for a family of 4. Freezes brilliantly.",
+    ingredients: [
+      "3 tbsp olive oil",
+      "1.25kg beef mince",
+      "2 onions, finely chopped",
+      "3 carrots, chopped",
+      "3 celery sticks, chopped",
+      "2 garlic cloves, finely chopped",
+      "3 tbsp plain flour",
+      "1 tbsp tomato purée",
+      "Large glass red wine (optional)",
+      "850ml beef stock",
+      "4 tbsp Worcestershire sauce",
+      "Thyme sprigs, 2 bay leaves",
+      "For the mash: 1.8kg potatoes",
+      "225ml milk",
+      "25g butter",
+      "200g strong cheddar"
+    ],
+    method: [
+      "Brown mince in batches. Set aside.",
+      "Cook onions, carrots and celery in oil for 20 mins until soft.",
+      "Add garlic, flour and tomato purée. Cook a few mins. Return beef.",
+      "Add wine, stock, Worcestershire sauce, thyme and bay leaves. Simmer uncovered 45 mins.",
+      "Boil potatoes, mash with milk, butter and ¾ of cheese. Season with nutmeg.",
+      "Spoon meat into dishes, top with mash and remaining cheese.",
+      "Bake at 220°C/gas 7 for 25–30 mins until golden."
+    ]
+  },
+  {
+    id: 7, name: "Gluten-Free Toad in the Hole", cat: "Mains", stamp: "Mains", isAaronFav: true,
+    serves: "4", time: "50 mins", source: "Online",
+    note: "Use freezer veg alongside. Can use dairy-free milk.",
+    ingredients: [
+      "8 gluten-free sausages",
+      "3 tbsp vegetable oil or lard",
+      "For the batter: 150g GF plain flour",
+      "3 eggs",
+      "250ml milk",
+      "Pinch of salt"
+    ],
+    method: [
+      "Preheat oven to 220°C/gas 7.",
+      "Whisk flour, eggs and milk to a smooth batter. Rest while oven heats.",
+      "Heat oil in a large roasting tin in the oven until smoking hot.",
+      "Add sausages and cook 10 mins, turning once.",
+      "Pour in batter (it should sizzle) and return to oven.",
+      "Bake 25–30 mins without opening the door until risen and golden. Serve immediately."
+    ]
+  },
+  {
+    id: 8, name: "Mountain Sausage Ragu", cat: "Mains", stamp: "Mains", isBatch: true, isKid: true, isAaronFav: true,
+    serves: "4", time: "1 hr (mostly simmering)", source: "Home",
+    ingredients: [
+      "15g dried porcini",
+      "3 tbsp olive oil",
+      "1 small onion, finely chopped",
+      "3 garlic cloves, thinly sliced",
+      "½ tsp crushed dried chillies",
+      "1 tsp fennel seeds, lightly crushed",
+      "350g pork sausage, skins removed",
+      "170ml dry white wine",
+      "400g chopped tomatoes",
+      "Salt and pepper",
+      "Pasta, Parmesan to serve"
+    ],
+    method: [
+      "Cover porcini in 100ml boiling water and leave for 30 mins. Drain, reserving the soaking liquid, and finely chop.",
+      "Heat olive oil and add onion, garlic, chillies and fennel. Fry until lightly browned.",
+      "Add sausage meat and porcini, fry for 5 mins.",
+      "Add wine and leave to bubble down for 2 mins.",
+      "Add tomatoes, the reserved mushroom liquid, salt and pepper. Simmer for 25–30 mins.",
+      "Serve over pasta with Parmesan."
+    ]
+  },
+  {
+    id: 9, name: "Salmon, Sweet Potatoes & Veg", cat: "Mains", stamp: "Mains", isVeg: true, isAaronFav: true,
+    serves: "4", time: "30 mins", source: "Home",
+    ingredients: [
+      "4 salmon fillets",
+      "2–3 sweet potatoes, peeled and cut into chunks",
+      "Seasonal vegetables of choice",
+      "Olive oil, salt and pepper",
+      "Lemon to serve"
+    ],
+    method: [
+      "Roast sweet potato chunks at 200°C for about 20 mins until tender.",
+      "Steam or roast vegetables alongside.",
+      "Season salmon, pan-fry skin-side down 3–4 mins, flip and cook 2 mins.",
+      "Serve with sweet potatoes, veg and lemon."
+    ]
+  },
+  {
+    id: 10, name: "Sausage, Mash & Veg", cat: "Mains", stamp: "Mains", isAaronFav: true,
+    serves: "4", time: "30 mins", source: "Home",
+    ingredients: [
+      "8 good quality sausages (GF if needed)",
+      "1kg potatoes, peeled and chopped",
+      "Splash of milk, knob of butter",
+      "Seasonal vegetables of choice",
+      "Gravy to serve"
+    ],
+    method: [
+      "Boil potatoes in salted water until tender. Drain and mash with milk and butter. Season.",
+      "Grill or fry sausages until browned and cooked through (15–20 mins).",
+      "Steam or boil vegetables. Serve with gravy."
+    ]
+  },
+  {
+    id: 11, name: "Pasta, Philly & Bacon", cat: "Mains", stamp: "Mains", isAaronFav: true,
+    serves: "4", time: "20 mins", source: "Home",
+    ingredients: [
+      "400g pasta",
+      "200g cream cheese (Philadelphia)",
+      "150g bacon or pancetta, diced",
+      "2 garlic cloves, crushed",
+      "Splash of pasta cooking water",
+      "Salt, pepper, parsley to serve"
+    ],
+    method: [
+      "Cook pasta, reserving a cup of cooking water.",
+      "Fry bacon until crispy. Add garlic for 1 min.",
+      "Reduce heat, add cream cheese and a splash of pasta water. Stir to a smooth sauce.",
+      "Toss pasta in the sauce. Loosen with more pasta water if needed. Season and serve."
+    ]
+  },
+  {
+    id: 13, name: "Fajitas", cat: "Mains", stamp: "Mains", isKid: true, isAaronFav: true,
+    serves: "4", time: "25 mins", source: "Home",
+    ingredients: [
+      "500g chicken breast or beef strips",
+      "2 mixed peppers, sliced",
+      "1 red onion, sliced",
+      "2 tsp fajita or Cajun seasoning",
+      "1 tbsp olive oil",
+      "8 flour tortillas (GF if needed)",
+      "Sour cream, guacamole, cheese, salsa to serve"
+    ],
+    method: [
+      "Toss meat in seasoning.",
+      "Heat oil in large pan on high. Cook meat 5–6 mins until cooked through.",
+      "Add peppers and onion, stir-fry 3–4 mins until tender but with some bite.",
+      "Warm tortillas and serve with all accompaniments."
+    ]
+  },
+  {
+    id: 14, name: "Sausage, Mash & Cherry Tomatoes", cat: "Mains", stamp: "Mains", isAaronFav: true,
+    serves: "4", time: "30 mins", source: "Home",
+    ingredients: [
+      "8 good quality sausages",
+      "200g cherry tomatoes",
+      "1kg potatoes, peeled and chopped",
+      "Milk and butter for mashing"
+    ],
+    method: [
+      "Fry or oven-cook sausages until golden and cooked through.",
+      "Add cherry tomatoes to the pan in the last 10 mins. Let them blister.",
+      "Boil potatoes, drain and mash with milk and butter. Season.",
+      "Serve sausages and tomatoes over mash, spooning over any pan juices."
+    ]
+  },
+  {
+    id: 15, name: "Jerk Chicken Rice & Peas", cat: "Mains", stamp: "Mains", isAaronFav: true,
+    serves: "4", time: "30 mins + marinating", source: "Online",
+    ingredients: [
+      "8 chicken thighs or drumsticks, bone-in skin-on",
+      "3 tbsp jerk seasoning paste",
+      "For rice & peas: 300g long-grain rice (rinsed)",
+      "1 x 400g can kidney beans (liquid reserved)",
+      "400ml coconut milk",
+      "4 spring onions, few thyme sprigs, 2 garlic cloves",
+      "1 tsp allspice, salt"
+    ],
+    method: [
+      "Marinate chicken in jerk seasoning for at least 1 hr, ideally overnight.",
+      "Grill or roast at 200°C for 25–30 mins, turning once, until charred and cooked through.",
+      "Boil bean liquid, coconut milk, spring onions, thyme, garlic, allspice and salt for 10 mins.",
+      "Add rice and beans, cover and simmer 15 mins until tender.",
+      "Drain if needed and serve with the chicken."
+    ]
+  },
+  {
+    id: 16, name: "Spinach & Sweet Potato Dahl", cat: "Mains", stamp: "Vegetarian", isVeg: true, isBatch: true, isAaronFav: true,
+    serves: "4", time: "35 mins", source: "Online",
+    note: "Add lentils 5 mins after sweet potatoes. Use 800ml stock for a thinner dhal.",
+    ingredients: [
+      "1 tbsp vegetable oil",
+      "1 red onion, finely chopped",
+      "1 garlic clove, crushed",
+      "Thumb-sized piece of ginger, chopped",
+      "1 red chilli, chopped",
+      "1½ tsp ground turmeric",
+      "1½ tsp ground cumin",
+      "2 sweet potatoes, cut into chunks",
+      "250g red split lentils",
+      "600–800ml vegetable stock",
+      "80g spinach",
+      "Spring onions and fresh basil to serve"
+    ],
+    method: [
+      "Heat oil. Cook onion on low for 10 mins until soft.",
+      "Add garlic, ginger and chilli for 1 min. Add turmeric and cumin for 1 min more.",
+      "Turn up heat, add sweet potatoes and coat in spices.",
+      "Add lentils (5 mins after potatoes), pour in stock, season. Cover and simmer 20 mins.",
+      "Stir in spinach until wilted. Top with spring onions and basil."
+    ]
+  },
+  {
+    id: 17, name: "Kadala Chickpea Curry", cat: "Mains", stamp: "Vegetarian", isVeg: true, isBatch: true, isAaronFav: true,
+    serves: "4", time: "30 mins", source: "Online",
+    ingredients: [
+      "2 tbsp vegetable oil",
+      "1 onion, chopped",
+      "1 red chilli",
+      "4 garlic cloves",
+      "Thumb of ginger",
+      "1 tsp cumin",
+      "1 tsp coriander",
+      "1 tsp turmeric",
+      "1 tsp garam masala",
+      "2 tbsp tomato purée",
+      "2 x 400g cans chickpeas, drained",
+      "1 x 400g can chopped tomatoes",
+      "50g creamed coconut or 100ml coconut milk",
+      "Handful fresh coriander",
+      "80g spinach",
+      "Rice or chapatis to serve"
+    ],
+    method: [
+      "Fry onion and chilli in a little oil until softened (8 mins).",
+      "Blend garlic, ginger, remaining oil, spices, tomato purée and fried onion to a smooth paste.",
+      "Cook paste in a pan for 2 mins. Add chickpeas and tomatoes, simmer 5 mins.",
+      "Add coconut with a little water, cook 5 mins more. Stir in coriander and spinach.",
+      "Serve with rice or chapatis."
+    ]
+  },
+  {
+    id: 18, name: "Veggie Chilli", cat: "Mains", stamp: "Vegetarian", isVeg: true, isBatch: true, isAaronFav: true,
+    serves: "4", time: "35 mins", source: "Home",
+    ingredients: [
+      "1 onion, diced",
+      "2 garlic cloves, crushed",
+      "1 red pepper, diced",
+      "1 tsp cumin",
+      "1 tsp smoked paprika",
+      "1 tsp chilli powder",
+      "1 x 400g can chopped tomatoes",
+      "1 x 400g can kidney beans, drained",
+      "1 x 400g can black beans, drained",
+      "Rice or jacket potato, sour cream, coriander to serve"
+    ],
+    method: [
+      "Heat oil and fry onion 5 mins. Add garlic, pepper and spices for 2 mins.",
+      "Add tomatoes, both cans of beans. Season and simmer 20 mins.",
+      "Serve with rice or jacket potato and toppings."
+    ]
+  },
+  {
+    id: 19, name: "Pasta alla Norma", cat: "Mains", stamp: "Vegetarian", isVeg: true, isBatch: true,
+    serves: "4", time: "45 mins", source: "Ottolenghi",
+    ingredients: [
+      "3 aubergines (900g)",
+      "120ml olive oil",
+      "3 garlic cloves, thinly sliced",
+      "1–2 mild dried chillies, sliced",
+      "5 large oregano sprigs",
+      "1 tsp caster sugar",
+      "2 x 400g tins of plum tomatoes",
+      "400g spaghetti",
+      "45g mature pecorino",
+      "300g ricotta (or ricotta salata), shaved",
+      "20g basil leaves, torn",
+      "Salt and black pepper"
+    ],
+    method: [
+      "Preheat the oven to 220°C fan.",
+      "Using a peeler and working from top to bottom of each aubergine, shave off long alternating strips of peel so they look like a zebra. Cut widthways into 1cm thick slices and place in a bowl with 75ml of oil, ½ tsp of salt and a generous grind of pepper. Mix well, then spread out on two large parchment-lined baking trays. Roast for 30–35 minutes until dark golden-brown. Remove from the oven and set aside to cool.",
+      "Put 2 tablespoons of oil into a sauté pan and place on medium-high heat. Add the garlic and chillies and fry for 1–2 minutes, stirring constantly, until the garlic is golden-brown. Add the tomatoes, oregano, sugar, ½ teaspoon of salt and a grind of pepper. Reduce heat to medium-low and cook for 10 minutes until the sauce is thick. Remove the oregano sprigs and stir in the aubergine. Set aside.",
+      "Bring a large pot of salted water to the boil and add the spaghetti. Cook until al dente, then strain, retaining some cooking water. Add the two-thirds of the sauce and mix well, adding two-thirds of the cooking water if the sauce has become too thick.",
+      "Divide the spaghetti between four shallow bowls, then top with the remaining sauce, pecorino, basil and a tablespoon of oil, and serve."
+    ]
+  },
+  {
+    id: 20, name: "Summer Pilau with Tomato, Coconut & Cashews", cat: "Mains", stamp: "Vegetarian", isVeg: true, isAaronFav: true,
+    serves: "4", time: "40 mins", source: "Meera Sodha",
+    note: "Curry leaves add a lovely citrus and smoke flavour but can be tricky to find — leave them out if needed. Use a wide frying pan with a tight-fitting lid.",
+    ingredients: [
+      "350g basmati rice",
+      "2 tbsp rapeseed oil",
+      "12 fresh curry leaves",
+      "4cm cinnamon stick",
+      "1 large onion, finely sliced",
+      "4 cloves of garlic, crushed",
+      "1 green finger chilli, finely sliced",
+      "50g unsalted cashews",
+      "400g baby plum tomatoes, halved",
+      "1 x 400ml tin of coconut milk",
+      "1¾ tsp salt"
+    ],
+    method: [
+      "Wash the rice in a few changes of cold water until the water runs clear, then leave to soak in plenty of cold water.",
+      "Meanwhile, heat the oil in a wide frying pan and add the curry leaves and cinnamon stick. Stir-fry for a minute, then add the onion and cook for around 10–12 minutes until it starts to turn golden brown and is soft enough to cut with a wooden spoon.",
+      "Add the garlic, chilli and cashews, and cook for a couple of minutes. Add the tomatoes and pop the lid on. Cook for around 8 minutes until the tomatoes are soft and jammy around the edges.",
+      "Drain the rice, add it to the pan and stir to combine. Add the coconut milk, 200ml of water and the salt. Stir and bring to the boil, then pop the lid on, turn the heat down to a whisper and cook for a further 15 minutes. Don't lift the lid — the steam is key to cooking the rice.",
+      "Once the 15 minutes is up, take off the heat and keep the lid on for a further 10 minutes to let the rice rest before eating.",
+      "Serve alongside a fresh green salad."
+    ]
+  },
+  {
+    id: 21, name: "Mum's Easy Lasagne", cat: "Mains", stamp: "Mains",
+    serves: "6", time: "1 hr 20 mins", source: "GF Cookbook",
+    ingredients: [
+      "For the ragu: 3 tbsp garlic-infused oil",
+      "1 carrot, diced",
+      "750g minced beef",
+      "200ml red wine or stock",
+      "2 x 400g cans chopped tomatoes",
+      "2 tbsp tomato purée",
+      "2 tbsp dried mixed herbs",
+      "For the white sauce: 50g butter",
+      "50g GF flour",
+      "750ml milk",
+      "75g extra mature cheddar",
+      "To assemble: 10–12 GF lasagne sheets, extra cheddar"
+    ],
+    method: [
+      "Fry carrot in oil 3–4 mins. Brown mince. Add wine, simmer 5 mins. Add tomatoes, purée and herbs. Simmer 30 mins.",
+      "White sauce: melt butter with flour and milk in a pan over low heat, stirring constantly until thick. Add cheese, season.",
+      "Preheat oven to 200°C/fan 220°C. Layer ragu, white sauce, lasagne sheets — finishing with sauce. Top with cheese.",
+      "Bake 30–40 mins until golden."
+    ]
+  },
+  {
+    id: 22, name: "Spaghetti Carbonara (GF)", cat: "Mains", stamp: "Mains", isAaronFav: true,
+    serves: "2", time: "15 mins", source: "GF Cookbook",
+    ingredients: [
+      "200g GF spaghetti",
+      "3 eggs",
+      "60g Pecorino Romano, grated",
+      "1 tbsp garlic-infused oil",
+      "100g pancetta, diced",
+      "Salt and black pepper"
+    ],
+    method: [
+      "Cook pasta, reserving 2 tbsp cooking water.",
+      "Beat eggs and grated cheese together with plenty of pepper.",
+      "Fry pancetta in garlic oil 4–5 mins until crisp.",
+      "Remove pan from heat. Add drained pasta, toss in fat. Add egg mixture and reserved water. Toss quickly.",
+      "Serve immediately with extra cheese."
+    ]
+  },
+  {
+    id: 23, name: "Lazy Pepperoni Gnocchi Bake (GF)", cat: "Mains", stamp: "Mains",
+    serves: "2–3", time: "40 mins", source: "GF Cookbook",
+    ingredients: [
+      "2 tbsp garlic-infused oil",
+      "1 yellow pepper, chopped",
+      "400g GF gnocchi",
+      "1 tsp smoked paprika",
+      "1 x 400g can chopped tomatoes",
+      "1 tsp dried mixed herbs",
+      "125g mozzarella, thinly sliced",
+      "40g pepperoni"
+    ],
+    method: [
+      "Preheat oven to 200°C. Heat oil, add pepper (2 mins), add gnocchi and paprika (3–4 mins).",
+      "Add tomatoes and herbs. Simmer 5 mins.",
+      "Transfer to ovenproof dish. Top with mozzarella then pepperoni.",
+      "Bake 20–30 mins until cheese is golden and bubbling."
+    ]
+  },
+  {
+    id: 24, name: "One-Pot Campfire Stew (GF)", cat: "Mains", stamp: "Mains",
+    serves: "2", time: "30 mins", source: "GF Cookbook",
+    ingredients: [
+      "3 tbsp garlic-infused oil",
+      "400g GF pork sausages",
+      "1 carrot (sliced), 1 yellow pepper (chopped)",
+      "1 tbsp smoked paprika",
+      "1 tbsp mixed herbs",
+      "½ tsp cumin",
+      "½ tsp chilli flakes",
+      "1 tbsp GF plain flour",
+      "250ml water",
+      "1 x 400g can chopped tomatoes",
+      "½ GF stock cube",
+      "125g butter beans, drained",
+      "Spring onion greens to serve"
+    ],
+    method: [
+      "Brown sausages in garlic oil 5 mins. Add carrot and pepper for 4–5 mins.",
+      "Add spices and flour, stir 2 mins. Add water, tomatoes and crumble in stock cube.",
+      "Simmer 20 mins. Stir in butter beans for 5 mins more.",
+      "Top with spring onions and serve with crusty bread."
+    ]
+  },
+  {
+    id: 25, name: "Mark's Bang-Bang Chicken Stir-Fry (GF)", cat: "Mains", stamp: "Mains",
+    serves: "2", time: "20 mins", source: "GF Cookbook",
+    ingredients: [
+      "250g chicken breast fillets",
+      "200g dried ribbon rice noodles",
+      "2 tbsp garlic-infused oil",
+      "2 carrots (sliced), 1 green pepper (chopped)",
+      "Handful beansprouts, spring onion greens",
+      "For the sauce: 4 tbsp GF soy sauce",
+      "2 tbsp peanut butter",
+      "2 tbsp oil",
+      "2 tbsp rice wine vinegar",
+      "1 tbsp maple syrup",
+      "1 tsp chilli flakes",
+      "1 tsp ginger paste"
+    ],
+    method: [
+      "Poach chicken in simmering water 15 mins. Remove and shred.",
+      "Prepare noodles per packet. Mix all sauce ingredients.",
+      "Stir-fry carrots and pepper in hot wok. Turn to medium, add noodles and toss.",
+      "Add shredded chicken and sauce. Stir-fry until coated.",
+      "Add beansprouts and spring onions. Serve with crushed peanuts and fried egg."
+    ]
+  },
+  {
+    id: 26, name: "Crispy Chilli Beef (GF)", cat: "Mains", stamp: "Mains",
+    serves: "2", time: "45 mins", source: "GF Cookbook",
+    ingredients: [
+      "250g beef sirloin, very thinly sliced",
+      "For the coating: 90g cornflour",
+      "135g GF flour",
+      "1 tsp GF baking powder",
+      "¾ tsp salt",
+      "2 eggs",
+      "500ml vegetable oil for frying",
+      "1 red pepper, thin strips",
+      "For the sauce: 100g ketchup",
+      "3 tbsp GF soy sauce",
+      "80g brown sugar",
+      "1 tbsp ginger paste",
+      "2 tbsp rice wine vinegar",
+      "230ml water",
+      "1 tsp chilli flakes"
+    ],
+    method: [
+      "Mix coating ingredients. Beat eggs in another bowl. Dip beef in coating, then egg, then coating again. Press firmly.",
+      "Heat oil to 170°C. Fry beef in batches 4–5 mins. Remove and drain. Re-fry 3–4 mins more for extra crispiness.",
+      "Mix all sauce ingredients. Heat garlic oil, cook pepper 2–3 mins. Add flour, stir to coat. Add sauce and simmer 5 mins.",
+      "Add crispy beef, toss to coat. Top with sesame seeds and serve."
+    ]
+  },
+  {
+    id: 27, name: "Chow Mein with Chicken or Beef (GF)", cat: "Mains", stamp: "Mains",
+    serves: "2", time: "15 mins", source: "GF Cookbook",
+    ingredients: [
+      "2 tbsp garlic-infused oil",
+      "250g chicken breast or beef sirloin, thinly sliced",
+      "1 carrot, sliced diagonally",
+      "250g GF egg noodles (or GF spaghetti, cooked and air-dried)",
+      "4 tbsp GF soy sauce",
+      "2 tsp sesame oil",
+      "Pinch of sugar",
+      "Handful beansprouts",
+      "2 handfuls spring onion greens, chopped"
+    ],
+    method: [
+      "Stir-fry chicken or beef in hot wok 1 min. Add carrot for 2 mins.",
+      "Add noodles and stir-fry to coat.",
+      "Add soy sauce, sesame oil and sugar. Toss well.",
+      "Turn heat to high 2 mins. Add beansprouts and spring onions. Serve."
+    ]
+  },
+  {
+    id: 28, name: "Gluten-Free KFC", cat: "Mains", stamp: "Mains",
+    serves: "4", time: "45 mins + 30 min chilling", source: "GF Cookbook",
+    ingredients: [
+      "1kg chicken thighs, drumsticks or wings",
+      "285ml buttermilk",
+      "1.5 litres vegetable oil",
+      "230g GF plain flour",
+      "2 tsp dried thyme",
+      "2 tsp dried basil",
+      "1½ tsp oregano",
+      "1 tbsp celery salt",
+      "1 tbsp dried mustard",
+      "2 tbsp smoked paprika",
+      "1 tbsp ground ginger",
+      "2 tbsp white pepper"
+    ],
+    method: [
+      "Mix chicken with buttermilk. Cover and chill 30 mins or overnight.",
+      "Mix all coating ingredients on a large plate.",
+      "Remove chicken from buttermilk and roll in seasoned flour until well coated.",
+      "Heat oil to 170°C. Fry in batches 10–12 mins until golden.",
+      "Drain on a wire rack. Serve with coleslaw, mash and gravy."
+    ]
+  },
+  {
+    id: 70, name: "Harissa Salmon with Sweet Potato", cat: "Mains", stamp: "Mains", isVeg: true,
+    serves: "4", time: "45 mins", source: "Home",
+    ingredients: [
+      "2 tbsp natural yoghurt",
+      "2 tsp harissa",
+      "2 tbsp chopped coriander",
+      "Grated rind and juice of ½ lime",
+      "4 pieces skinless salmon",
+      "Vegetable oil",
+      "Lime wedges to serve",
+      "Fresh parsley to serve",
+      "500g sweet potato, cut into chunks",
+      "1 tbsp oil",
+      "1 tsp cumin seeds",
+      "½ tsp garam masala",
+      "Salt and pepper"
+    ],
+    method: [
+      "Mix together the yoghurt, harissa, coriander and lime rind and juice. Coat the salmon in the marinade and refrigerate for 20 minutes.",
+      "Toss the sweet potato chunks with the oil, cumin seeds, garam masala, salt and pepper. Roast in the oven at 200°C for 35–40 minutes.",
+      "Cook the salmon: preheat a pan and cook for 3 minutes each side, or bake in the oven for 15 minutes.",
+      "Serve the salmon with the roasted sweet potato, lime wedges and parsley."
+    ]
+  },
+  // ── VEGETARIAN MAINS ────────────────────────────────────────────────────
+  {
+    id: 29, name: "Black Pepper Tofu", cat: "Mains", stamp: "Vegetarian", isVeg: true,
+    serves: "4", time: "20 mins", source: "MOB Cookbook",
+    ingredients: [
+      "2 x 280g packets firm tofu (e.g. The Tofoo Co.)",
+      "Cornflour for coating",
+      "400g basmati rice",
+      "Vegetable oil for frying",
+      "4 tbsp butter",
+      "1 white onion, finely chopped",
+      "4 garlic cloves, finely chopped",
+      "Large piece of ginger, finely chopped",
+      "2 tbsp crushed black peppercorns",
+      "2 tbsp white sugar",
+      "5 tbsp light soy sauce",
+      "5 tbsp dark soy sauce",
+      "1 red chilli",
+      "4 spring onions"
+    ],
+    method: [
+      "Cube tofu, coat in cornflour. Fry in oil until browned. Remove.",
+      "Cook rice per packet instructions.",
+      "Heat oil and butter, fry onion, garlic and ginger until soft.",
+      "Add black pepper and sugar. Stir until sugar dissolves.",
+      "Add soy sauces, chilli and spring onions. Add tofu, coat in sauce.",
+      "Add 1 more tbsp butter and serve on rice."
+    ]
+  },
+  {
+    id: 30, name: "Sweet Potato, Black Bean & Caramelised Onion Quesadillas", cat: "Mains", stamp: "Vegetarian", isVeg: true, isAaronFav: true,
+    serves: "4", time: "45 mins", source: "MOB Cookbook",
+    ingredients: [
+      "3 red onions, sliced into long strips",
+      "2 sweet potatoes",
+      "Balsamic vinegar",
+      "1 x 400g can black beans, drained",
+      "4 large flour tortillas",
+      "Dried chilli flakes, olive oil"
+    ],
+    method: [
+      "Cook sliced onions in oil with a splash of water for 30 mins, stirring, until caramelised. Stir in balsamic vinegar.",
+      "Cook sweet potatoes in microwave or oven until tender.",
+      "Place a tortilla in a hot non-stick pan. Fill half with sweet potato, black beans and onion. Sprinkle with chilli flakes. Fold.",
+      "Cook 2 mins until browned. Flip and cook the other side. Slice and serve."
+    ]
+  },
+  {
+    id: 31, name: "Roast Vegetable Gyros with Coconut Yogurt Tzatziki", cat: "Mains", stamp: "Vegetarian", isVeg: true, isAaronFav: true,
+    serves: "4", time: "1 hr", source: "MOB Cookbook",
+    ingredients: [
+      "2 bell peppers, 3 courgettes, 1 red onion, 1 cauliflower — all chopped",
+      "1 x 400g can chickpeas (with starchy water)",
+      "Cayenne pepper, 2 tsp garam masala, olive oil, salt & pepper",
+      "Tzatziki: 120g dairy-free coconut yogurt, fresh mint, juice of 1 lemon, 1 cucumber (grated), 1 garlic clove",
+      "4 pittas, pomegranate seeds to garnish"
+    ],
+    method: [
+      "Preheat oven to 180°C fan. Place all veg and chickpeas with their water on a large baking tray.",
+      "Add olive oil, cayenne, garam masala, salt and pepper. Mix and roast 30 mins.",
+      "Make tzatziki: combine yogurt, mint, lemon juice, grated cucumber and garlic. Season.",
+      "After 30 mins, toss veg and return for 15 more mins.",
+      "Warm pittas. Fill with roasted veg, tzatziki and pomegranate seeds."
+    ]
+  },
+  {
+    id: 33, name: "Creamy Tomato Pasta", cat: "Mains", stamp: "Vegetarian", isVeg: true, isBatch: true, isKid: true, isAaronFav: true,
+    serves: "4", time: "30 mins", source: "Online",
+    ingredients: [
+      "400g pasta",
+      "2 red onions, finely diced",
+      "3 garlic cloves, chopped",
+      "100g sun-dried tomatoes",
+      "200g cherry tomatoes, halved",
+      "1 tsp dried rosemary",
+      "1 tsp chilli powder",
+      "½ tsp fennel seeds",
+      "1 vegetable stock cube mixed with 100ml boiling water",
+      "3 tbsp tomato purée",
+      "100g coconut yoghurt",
+      "Fresh parsley"
+    ],
+    method: [
+      "Cook pasta, reserving some water.",
+      "Sauté onions 8 mins, add garlic 2 mins.",
+      "Add all tomatoes, spices, stock and purée. Simmer 10 mins.",
+      "Stir in coconut yoghurt, heat gently.",
+      "Toss with pasta, adding pasta water to loosen. Top with parsley."
+    ]
+  },
+  {
+    id: 34, name: "Pea & Spinach Pesto Pasta", cat: "Mains", stamp: "Vegetarian", isVeg: true,
+    serves: "2", time: "20 mins", source: "Online",
+    ingredients: [
+      "2 portions pasta (brown rice pasta recommended)",
+      "150g peas (frozen or fresh)",
+      "Two handfuls fresh spinach",
+      "For the pesto: 50g pine nuts",
+      "5 tbsp olive oil",
+      "Large handful basil",
+      "2 roasted garlic cloves",
+      "Juice of ½ lemon",
+      "1 tbsp nutritional yeast",
+      "Pinch of salt"
+    ],
+    method: [
+      "Blend all pesto ingredients until smooth.",
+      "Cook pasta per packet instructions. Add peas in last 3 mins, spinach in the final minute.",
+      "Drain, reserving a little water. Toss with pesto, loosening with pasta water."
+    ]
+  },
+  {
+    id: 35, name: "Garlic & Chilli Spaghetti", cat: "Mains", stamp: "Vegetarian", isVeg: true,
+    serves: "2", time: "20 mins", source: "Online",
+    ingredients: [
+      "200g brown rice spaghetti",
+      "200g frozen peas",
+      "50g pine nuts",
+      "200g sun-dried tomatoes",
+      "4 handfuls fresh spinach",
+      "1 red chilli, finely chopped",
+      "4 garlic cloves, finely chopped",
+      "1 tbsp olive oil, salt and pepper"
+    ],
+    method: [
+      "Cook spaghetti, adding peas in last 3 mins.",
+      "Toast pine nuts in a dry pan. Set aside.",
+      "Heat oil, gently cook garlic and chilli 2 mins.",
+      "Add sun-dried tomatoes and spinach until wilted.",
+      "Toss with drained pasta and pine nuts. Season and serve."
+    ]
+  },
+  // ── BREAKFAST & BRUNCH ──────────────────────────────────────────────────
+  {
+    id: 36, name: "Akoori (Indian Scrambled Eggs)", cat: "Breakfast", stamp: "Breakfast", isVeg: true,
+    serves: "2–4", time: "15 mins", source: "Online",
+    ingredients: [
+      "Knob of butter",
+      "1 red onion, finely chopped",
+      "1 red chilli, finely chopped",
+      "1 garlic clove, crushed",
+      "½ tsp cumin, ½ tsp garam masala, ¼ tsp turmeric",
+      "2 large ripe tomatoes, finely chopped",
+      "7 eggs, beaten",
+      "Handful fresh coriander, chapatis to serve"
+    ],
+    method: [
+      "Melt butter and fry onion until softened (6 mins). Add chilli and garlic for 1 min.",
+      "Add spices for 1 min. Add tomatoes for 1 min.",
+      "Pour in beaten eggs and lower heat. Stir slowly to scramble.",
+      "Remove from heat while still slightly runny. Stir off heat 1 min until just set.",
+      "Stir through coriander. Serve with chapatis."
+    ]
+  },
+  {
+    id: 37, name: "North African Eggs (Gordon Ramsay)", cat: "Breakfast", stamp: "Breakfast", isVeg: true, isAaronFav: true,
+    serves: "2–4", time: "20 mins", source: "Gordon Ramsay",
+    ingredients: [
+      "1 tbsp olive oil",
+      "1 onion, finely chopped",
+      "1 red pepper and 1 green pepper, diced",
+      "2–3 garlic cloves, crushed",
+      "1 red chilli, finely chopped",
+      "1 tsp cumin seeds",
+      "5 ripe tomatoes, roughly chopped",
+      "4 eggs",
+      "Fresh coriander, spring onion to serve",
+      "Crusty bread"
+    ],
+    method: [
+      "Heat oil and sweat onions 5 mins. Add peppers for 5 mins.",
+      "Add garlic and chilli for 1–2 mins. Add cumin seeds for 1 min.",
+      "Add tomatoes, season and cook 5–10 mins until sauce is reduced.",
+      "Make 4 wells, crack an egg into each. Cover and cook on medium-low 5–6 mins.",
+      "Serve with coriander, spring onion and crusty bread."
+    ]
+  },
+  {
+    id: 38, name: "Chorizo, Kale & Hash with Fried Egg", cat: "Breakfast", stamp: "Breakfast", isAaronFav: true,
+    serves: "2", time: "25 mins", source: "Online",
+    ingredients: [
+      "1 tsp mild olive oil",
+      "80g spicy chorizo, cut into small pieces",
+      "1 onion, finely chopped",
+      "100g kale (2 good handfuls)",
+      "400g cold cooked potatoes, roughly chopped",
+      "½ tsp paprika (optional)",
+      "2 eggs"
+    ],
+    method: [
+      "Heat oil, add chorizo and onion. Fry 8 mins until chorizo is golden and onion soft.",
+      "Turn up heat, add kale and stir-fry 1 min until wilting.",
+      "Stir in potatoes, paprika and seasoning. Fry 5 mins, scraping the pan for crispy bits.",
+      "Fry or poach eggs separately. Serve on top of the hash."
+    ]
+  },
+  {
+    id: 39, name: "Hash Brown Breakfast Cups (GF)", cat: "Breakfast", stamp: "Breakfast",
+    serves: "9 cups", time: "45 mins", source: "GF Cookbook",
+    ingredients: [
+      "500g potatoes, coarsely grated and moisture squeezed out",
+      "80g extra mature Cheddar, grated",
+      "60g butter, melted",
+      "½ tsp salt",
+      "9 small eggs",
+      "50g smoky bacon, finely diced",
+      "Fresh chives to serve"
+    ],
+    method: [
+      "Preheat oven to 180°C fan. Rinse grated potato, squeeze dry and rest on kitchen paper 10 mins.",
+      "Mix potato, cheese, melted butter and salt.",
+      "Press mixture into 9 holes of a muffin tray to form a thin base and sides.",
+      "Bake 15 mins, crack an egg into each, top with bacon.",
+      "Bake 10 mins more. Serve topped with chives."
+    ]
+  },
+  {
+    id: 40, name: "Chocolate Hazelnut French Toast (GF)", cat: "Breakfast", stamp: "Breakfast",
+    serves: "2", time: "10 mins", source: "GF Cookbook",
+    ingredients: [
+      "4 slices GF bread",
+      "4 tbsp chocolate hazelnut spread",
+      "75ml milk",
+      "2 eggs",
+      "15g butter",
+      "Icing sugar, maple syrup, fresh raspberries to serve"
+    ],
+    method: [
+      "Make two sandwiches with bread and chocolate hazelnut spread.",
+      "Beat eggs and milk together. Dunk sandwiches and let soak a few minutes.",
+      "Melt butter in a pan over medium heat. Fry sandwiches 2–3 mins per side until golden.",
+      "Dust with icing sugar, serve with maple syrup and raspberries."
+    ]
+  },
+  {
+    id: 76, name: "Loaded Baked Omelet Muffins", cat: "Breakfast", stamp: "Breakfast", isKid: true, isBatch: true, isAaronFav: true,
+    serves: "12 muffins", time: "30 mins", source: "Online",
+    note: "Highly customisable — swap in any veg, cheese or meat you like. Freeze and reheat well. Two muffins make a filling breakfast.",
+    ingredients: [
+      "Nonstick cooking spray",
+      "8 large eggs",
+      "Salt and pepper",
+      "3 rashers bacon, cooked and crumbled",
+      "Handful of baby spinach",
+      "1 red pepper, finely diced",
+      "2 spring onions, sliced",
+      "60g shredded cheese (cheddar, mozzarella or mix)"
+    ],
+    method: [
+      "Preheat oven to 180°C / 160°C fan. Spray a 12-cup muffin tin generously with cooking spray.",
+      "In a large bowl, whisk the eggs and season well with salt and pepper.",
+      "Mix in the bacon, spinach, red pepper, spring onions and cheese.",
+      "Fill each muffin cup about ¾ full.",
+      "Place tin on a baking sheet and bake for 20–25 minutes until the eggs are set.",
+      "Leave to cool slightly before removing. Serve immediately or cool completely and store in the fridge for up to 4 days, or freeze for up to 3 months."
+    ]
+  },
+  // ── SALADS & LIGHT MEALS ────────────────────────────────────────────────
+  {
+    id: 41, name: "Lazy Summer Salad", cat: "Mains", stamp: "Mains", isAaronFav: true,
+    serves: "2", time: "20 mins", source: "Online",
+    ingredients: [
+      "4 chicken thigh fillets",
+      "1 pot fresh pesto",
+      "Bag of mixed salad",
+      "Handful of cherry tomatoes",
+      "2 ripe peaches, sliced",
+      "Handful of feta, crumbled",
+      "1 avocado, 1 red pepper, new potatoes",
+      "Dressing: olive oil, balsamic vinegar, Dijon mustard"
+    ],
+    method: [
+      "Fry seasoned chicken thighs until cooked through. Toss with half the pesto.",
+      "Cook new potatoes in boiling salted water.",
+      "Make dressing by shaking all ingredients in a jar.",
+      "Assemble salad, tomatoes, peaches, feta, avocado, pepper and potatoes.",
+      "Top with pesto chicken, remaining pesto and dressing."
+    ]
+  },
+  {
+    id: 71, name: "Marry Me Sundried Tomato Orzo", cat: "Kids", stamp: "Kids", isVeg: true, isBatch: true, isKid: true,
+    serves: "3", time: "35 mins", source: "Home",
+    ingredients: [
+      "280g sundried tomatoes",
+      "Handful of cherry tomatoes, quartered",
+      "1 red onion, diced",
+      "2 garlic cloves, crushed",
+      "1 tin cannellini beans",
+      "1 tin tomatoes",
+      "400ml vegetable stock",
+      "1 tsp dried oregano",
+      "1 tsp dried basil",
+      "½ tsp smoked paprika",
+      "160g orzo",
+      "100g cream cheese"
+    ],
+    method: [
+      "Heat olive oil in a pan and add the onion, garlic and herbs. Fry off for 5 mins to soften the onion.",
+      "Add the sundried tomatoes, cherry tomatoes, cannellini beans, chopped tomatoes and vegetable stock. Stir well. Season and stir.",
+      "Bring to the bubble and reduce to a gentle simmer with lid on. Leave for 20 mins, stirring occasionally to stop sticking.",
+      "Once the orzo is soft and mixture is thick, add the cream cheese and stir thoroughly."
+    ]
+  },
+  {
+    id: 72, name: "Mummy's Rice and Chilli", cat: "Mains", stamp: "Vegetarian", isVeg: true, isBatch: true, isAaronFav: true,
+    serves: "3+", time: "30 mins", source: "Home",
+    note: "Goes great with brown rice or jacket potato.",
+    ingredients: [
+      "1 medium onion",
+      "8 mushrooms",
+      "1 red pepper",
+      "1 tin tomatoes",
+      "1 tin kidney beans",
+      "Garlic",
+      "½ tsp chilli powder",
+      "1 tsp ground cumin",
+      "1 tsp ground coriander",
+      "Rice to serve"
+    ],
+    method: [
+      "Fry onion and garlic in a saucepan in olive oil until softened.",
+      "Add spices and allow to soak up for about 1 min.",
+      "Add all other ingredients and cook for 20 mins on medium heat.",
+      "Serve and enjoy."
+    ]
+  },
+  {
+    id: 73, name: "Spring Vegetable Bun Cha", cat: "Mains", stamp: "Vegetarian", isVeg: true, isAaronFav: true,
+    serves: "4", time: "30 mins", source: "Meera Sodha",
+    note: "The sweet-and-sour nuoc cham dressing and the herb and peanut garnish are key — don't leave them out.",
+    ingredients: [
+      "200g red cabbage, finely shredded",
+      "Rapeseed oil",
+      "4 cloves of garlic, cut into paper-thin slices",
+      "3 bird's-eye chillies, thinly sliced",
+      "100ml soy sauce",
+      "3 tbsp lime juice (from 2 limes)",
+      "2 tbsp caster sugar",
+      "400g extra-firm tofu",
+      "Salt and ground black pepper",
+      "10 spring onions, thinly sliced",
+      "250g peas or mixed peas and broad beans",
+      "200g watercress, tough stems discarded, chopped",
+      "250g rice vermicelli noodles",
+      "A large handful of salted peanuts, smashed",
+      "A handful of fresh coriander, finely chopped",
+      "A handful of fresh mint, finely chopped"
+    ],
+    method: [
+      "Put the cabbage into a medium-sized heatproof bowl. Heat 2 tbsp oil in a small saucepan over a low heat and, when hot, add the garlic and chillies. Stir-fry for 2 minutes until the garlic is fragrant, then add the soy sauce, lime juice, sugar and 8 tbsp of water. Bring to the boil, take off the heat and pour over the cabbage.",
+      "Press the tofu block between your hands over the sink to extract as much water as possible. Wrap in kitchen paper and press to absorb excess moisture, then cut into 3cm cubes. Heat 2 tbsp oil in a non-stick frying pan over a medium flame. Add tofu (in batches if needed) and fry undisturbed for 4 minutes until a crust forms. Turn and fry until golden on all sides. Season and transfer to a lined plate.",
+      "In the same pan, heat 2 tbsp oil on a high flame. Add the spring onions and fry for 6 minutes until soft. Add the peas, beans (if using) and a scant ½ tsp of salt, stir-fry for 2 minutes, then add the watercress and briefly cook until wilted. Turn off the heat.",
+      "Boil the kettle, soak the noodles per packet instructions, then drain.",
+      "Divide the noodles, tofu and veg between four bowls. Put a little cabbage in each bowl and ladle as much of its pickling liquid over the top as you like. Garnish with smashed peanuts and herbs, then serve."
+    ]
+  },
+  {
+    id: 77, name: "Baked Bream on Chickpeas & Sweet and Sour Peppers", cat: "Mains", stamp: "Mains",
+    serves: "2–3", time: "50 mins", source: "Home",
+    ingredients: [
+      "700–900g sea bream or sea bass, cleaned, gutted and scaled",
+      "3 long red peppers, cut into chunky slices",
+      "2 sweet white onions, cut into 0.5cm slivers",
+      "2 garlic cloves, thinly sliced",
+      "1 tbsp tomato purée",
+      "2 tbsp brown sugar",
+      "2 lemons",
+      "100g flat leaf parsley",
+      "1 tin chickpeas",
+      "2 tbsp sherry vinegar",
+      "Olive oil",
+      "Sea salt and black pepper",
+      "Bay leaves"
+    ],
+    method: [
+      "Preheat the oven to 220°C.",
+      "Sit the peppers on top of the sliced onions in a roasting tray. Drizzle with olive oil and salt. Roast for 13–15 mins until the peppers char and caramelise.",
+      "Remove from the oven. Thinly slice the garlic and crush the bay leaves. Stir in the garlic, tomato purée, bay leaves and brown sugar with the peppers and onions.",
+      "Return to the oven for 5 minutes.",
+      "Season the fish, stuff the cavity with lemon slices and stalks of parsley.",
+      "Tip in the chickpeas with their juice and the sherry vinegar. Stir through. Lay the fish on top.",
+      "Return to the oven and bake until the fish is cooked through (about 20 mins depending on size).",
+      "Finely chop the remaining parsley and mix with the juice and zest of the remaining lemon and plenty of extra olive oil. Spoon over to serve."
+    ]
+  },
+  {
+    id: 78, name: "Marcella Hazan's Bolognese Sauce", cat: "Mains", stamp: "Mains", isBatch: true, isAaronFav: true,
+    serves: "4–6", time: "4+ hrs", source: "Cooked.wiki App",
+    note: "This is a long, slow cook — budget at least 4 hours. The milk is added before the wine and is key to giving the meat a sweet, tender quality. The sauce should be very dry by the end, with the fat separating out. Add ½ cup water if it dries too fast, but ensure it's fully evaporated before serving.",
+    ingredients: [
+      "2 tbsp vegetable oil",
+      "6 tbsp unsalted butter (plus 2 tbsp to finish)",
+      "150g onion, finely chopped",
+      "160g celery, finely chopped",
+      "160g carrot, finely chopped",
+      "450g minced beef (chuck or a mix of beef and veal)",
+      "225g minced pork",
+      "Kosher or flaky sea salt and freshly ground black pepper",
+      "480ml whole milk",
+      "⅛ tsp freshly grated nutmeg",
+      "480ml dry white wine",
+      "700g canned Italian San Marzano tomatoes, crushed by hand with their juice",
+      "Pasta to serve (Marcella prefers tagliatelle)",
+      "Freshly grated Parmigiano-Reggiano to serve"
+    ],
+    method: [
+      "In a large, heavy casserole pot over medium heat, warm the oil and 6 tbsp butter until the butter melts and stops foaming. Add the onion and cook, stirring frequently, until softened and translucent, about 5 minutes.",
+      "Add the celery and carrot and cook, stirring to coat in the oil and butter, for 2 minutes.",
+      "Add the beef and pork, a generous pinch of salt and plenty of pepper. Crumble the meat with a wooden spoon and cook, stirring occasionally, until the meat has just lost its raw-red colour.",
+      "Reduce heat to low. Pour in the milk and simmer gently, stirring frequently, until the liquid has completely evaporated — about 1 hour.",
+      "Stir in the nutmeg. Pour in the white wine and gently simmer, stirring frequently, until fully evaporated — about 1¼ hours more.",
+      "Add the crushed tomatoes and stir well. Once the sauce begins to bubble, turn the heat down to the laziest of simmers with just an intermittent bubble breaking the surface.",
+      "Cook uncovered for 3 hours or more, stirring occasionally. If the sauce starts to dry out and stick, add 120ml water — but it must be completely evaporated by the time the sauce finishes. The fat should separate from the sauce when done.",
+      "Taste and season with salt and pepper. Toss the cooked pasta with the remaining 2 tbsp butter, then with the sauce. Serve with Parmigiano-Reggiano at the table."
+    ]
+  },
+  {
+    id: 42, name: "Courgette Puff Pinwheels", cat: "Kids", stamp: "Kids", isVeg: true, isBatch: true, isKid: true,
+    serves: "12 pinwheels", time: "20 mins", source: "What Mummy Makes",
+    note: "Egg-free option: skip the egg wash. Squeezing the courgette dry is essential or the pinwheels turn soggy.",
+    ingredients: [
+      "375g pack of ready-rolled puff pastry",
+      "2½ tbsp tomato purée",
+      "5 tbsp water",
+      "1 tsp mixed dried herbs",
+      "1 tsp garlic granules",
+      "2 tsp smoked paprika",
+      "1 small courgette",
+      "80g Cheddar, grated",
+      "1 egg, beaten (optional)",
+      "Freshly ground black pepper"
+    ],
+    method: [
+      "Preheat oven to 200°C fan (220°C/425°F/Gas 7). Take the pastry out of the fridge to come up to room temperature while you prepare the filling.",
+      "In a small bowl, mix the tomato purée, water, herbs, garlic granules, paprika and a little black pepper. Set aside.",
+      "Coarsely grate the courgette, then pile into the centre of a clean tea towel. Gather the sides and squeeze out as much liquid as you can over the sink — courgettes hold a lot of water, and skipping this step makes the pinwheels soggy.",
+      "Unroll the pastry and spread the tomato sauce evenly across the entire sheet.",
+      "Sprinkle over the squeezed courgette, separating any clumps with your fingers so it reaches all the edges. Sprinkle the cheese over edge-to-edge.",
+      "From one of the long sides, roll the pastry into a tight log. Using a sharp knife, cut into 12 equal slices and place flat-side down on a lined baking tray.",
+      "Lightly brush each pinwheel with beaten egg, if using.",
+      "Bake for 15–17 minutes until the pastry has puffed up and turned golden.",
+      "Keeps in the fridge for 2 days, or freezer for 3 months. Reheat from frozen for 5–10 mins in a hot oven until piping hot."
+    ]
+  },
+  {
+    id: 43, name: "Courgette Fritters", cat: "Kids", stamp: "Kids", isVeg: true, isBatch: true, isKid: true,
+    serves: "Makes a tray (cut into squares)", time: "20–25 mins", source: "What Mummy Makes",
+    note: "Egg-free option: replace the 2 eggs with 2 tbsp ground flaxseed mixed with 75ml water. Dairy-free: use nutritional yeast instead of Cheddar.",
+    ingredients: [
+      "1 courgette, grated and the liquid squeezed out",
+      "2 eggs (or 2 tbsp ground flaxseed mixed with 75ml water)",
+      "100g self-raising flour",
+      "1 tsp baking powder",
+      "80g grated Cheddar (or 1 tbsp nutritional yeast)",
+      "80ml milk of your choice"
+    ],
+    method: [
+      "Preheat the oven to 180°C fan (200°C/400°F/Gas 6). Line a baking tray with non-stick baking paper.",
+      "Add all the ingredients to a bowl and stir until combined.",
+      "Pour the batter into the lined baking tray and spread out evenly to about 1cm thick.",
+      "Bake for 15–20 minutes until puffed up and golden on top.",
+      "Using a pizza cutter, cut into squares (or finger strips for a baby). Serve with a side salad and full-fat Greek-style yoghurt for dipping.",
+      "Keeps in the fridge for 2 days, or freezer for up to 2 months. Defrost and warm in the microwave, or defrost at room temperature and reheat in the oven for 5 minutes until piping hot."
+    ]
+  },
+  {
+    id: 68, name: "Carrot and Raisin Muffins", cat: "Kids", stamp: "Kids", isVeg: true, isBatch: true, isKid: true,
+    serves: "12 muffins", time: "25 mins", source: "What Mummy Makes",
+    note: "Family adaptation: use 230g carrot + 150g apple (both grated) instead of all carrot, plus a splash of milk and 1 tsp vanilla.",
+    ingredients: [
+      "230g carrot, coarsely grated",
+      "150g apple, coarsely grated",
+      "200g self-raising flour",
+      "1 tsp baking powder",
+      "1 tsp vanilla extract",
+      "2 tsp ground cinnamon",
+      "80g unsalted butter or coconut oil, softened",
+      "50g maple syrup (optional)",
+      "Splash of milk",
+      "3 eggs",
+      "80g raisins, tossed in 1 tbsp plain flour"
+    ],
+    method: [
+      "Preheat the oven to 180°C fan (200°C/400°F/Gas 6). Line a 12-hole muffin tin with paper cases.",
+      "Place the grated carrot and apple in a bowl and add all the other ingredients except the raisins. Stir well, but try not to over-mix.",
+      "Add the flour-tossed raisins and briefly stir into the batter — this helps stop them sinking to the bottom.",
+      "Spoon the mixture into the lined muffin tin and bake for 20–25 minutes until well risen and a skewer comes out clean.",
+      "Store in an airtight container for up to 5 days, or freeze for up to 3 months."
+    ]
+  },
+  // ── SNACKS & KIDS' BAKING ───────────────────────────────────────────────
+  {
+    id: 44, name: "Blueberry & Banana Porridge Bars", cat: "Kids", stamp: "Kids", isVeg: true, isBatch: true, isKid: true,
+    serves: "12–16 bars", time: "35 mins", source: "What Mummy Makes",
+    note: "Tips: double up the quantities. Can use frozen blueberries — swap for raspberries if preferred. Serve with yoghurt.",
+    ingredients: [
+      "250g porridge oats",
+      "250ml milk",
+      "2 small ripe bananas",
+      "1 tsp cinnamon",
+      "200g blueberries"
+    ],
+    method: [
+      "Preheat oven to 180°C fan. Line a 20x30cm baking tin with baking parchment.",
+      "Mash bananas with a fork.",
+      "Mix oats, milk and cinnamon into the mashed bananas with a wooden spoon until the oats are well coated.",
+      "Add the blueberries and gently mix.",
+      "Pour into baking tin and press down flat.",
+      "Bake in oven for 20–25 mins until turning golden brown on top.",
+      "Allow to cool in tin before cutting into bars."
+    ]
+  },
+  {
+    id: 47, name: "Easy On-the-Go Brekkie Bars", cat: "Kids", stamp: "Kids", isVeg: true, isBatch: true, isKid: true,
+    serves: "12 bars", time: "20 mins", source: "The Ultimate Weaning and Toddler Cookbook",
+    note: "Swap dates for other dried fruits if preferred. Keeps in the fridge for 2 days with baking paper between layers, or freeze for 3 months — defrost overnight in fridge.",
+    ingredients: [
+      "8 dried dates (Medjool if possible, about 100g), destoned",
+      "Boiling water to cover the dates",
+      "80g porridge oats",
+      "1 medium apple, cored and coarsely grated",
+      "1 tsp ground cinnamon",
+      "1 heaped tbsp ground almonds"
+    ],
+    method: [
+      "Pop the dates into a bowl and cover with boiling water. Leave to one side for 5 minutes then drain.",
+      "Preheat oven to 210°C / 190°C fan. Line a 20cm square baking tin with greaseproof paper.",
+      "In a food processor, add the oats, apple, cinnamon, ground almonds and drained soaked dates. Pulse until it forms a sticky paste, then remove to the baking tin.",
+      "Spread out to make an even layer using the back of a spoon dunked in warm water (this helps to spread it without it sticking).",
+      "Bake in the middle of the oven for 10–12 minutes until golden and cooked.",
+      "Remove from the tin and, while still slightly warm, cut into 12 bars then leave to cool completely."
+    ]
+  },
+  {
+    id: 74, name: "Mac and Cheese with Kale and Cauliflower", cat: "Kids", stamp: "Kids", isVeg: true, isBatch: true, isKid: true,
+    serves: "2 babies + 1 adult", time: "35 mins", source: "The Ultimate Weaning and Toddler Cookbook",
+    note: "Family quantities (handwritten adjustments): 225g pasta, 150g cauliflower, 30g butter, 30g flour, 400ml milk, ½ tsp garlic granules, ½ tsp nutritional yeast, 90g cheddar. Can vary veg — mushrooms, sweetcorn and spinach all work. Add a little extra milk to loosen if blending for baby.",
+    ingredients: [
+      "150g macaroni pasta (or wholegrain fusilli)",
+      "A large handful of kale, finely chopped (stems removed)",
+      "100g cauliflower, chopped into small pieces",
+      "20g unsalted butter",
+      "20g plain flour",
+      "285ml milk of choice",
+      "¼ tsp garlic granules",
+      "¼ tsp nutritional yeast (optional)",
+      "60g Cheddar cheese, grated"
+    ],
+    method: [
+      "Cook the pasta in boiling water for about 5 minutes, then add the kale and cauliflower and cook for a further 5 minutes until the pasta is cooked and the veg is soft. Drain and leave to one side.",
+      "Preheat the oven to 200°C, or the grill to high.",
+      "Put the butter into a large pan and allow to melt over a medium heat.",
+      "Add the flour and stir well to make a roux (a kind of paste).",
+      "Gradually add the milk, stirring all the while as it gradually thickens. This can take a little time, so be patient.",
+      "Once thick, take off the heat and add the garlic granules, nutritional yeast (if using) and 40g of the cheese. Stir well until the cheese has melted.",
+      "Add the pasta, kale and cauliflower to the cheese sauce and stir well. Transfer to an ovenproof dish and sprinkle over the remaining cheese.",
+      "Cook in the oven or grill for 10–15 minutes until the cheese has browned on top."
+    ]
+  },
+  {
+    id: 75, name: "Cheat's Beef Ragu", cat: "Kids", stamp: "Kids", isBatch: true, isKid: true,
+    serves: "2 adults + 2 littles", time: "25 mins", source: "The Ultimate Weaning and Toddler Cookbook",
+    note: "Suitable from 6 months. Egg- and dairy-free (can add grated cheese on top). Can simmer on the hob for up to 2 hours, or pop in a slow cooker all day. Freeze for up to 3 months.",
+    ingredients: [
+      "500g lean minced beef",
+      "2 celery sticks, finely diced",
+      "2 carrots, finely diced",
+      "250g dried pasta",
+      "2 tsp smoked paprika",
+      "1 garlic clove, crushed",
+      "1 low-salt beef stock cube",
+      "1 tbsp Worcestershire sauce",
+      "1 tsp mixed dried herbs",
+      "500g passata (strained tomatoes)",
+      "1 tsp maple or fruit syrup (optional)"
+    ],
+    method: [
+      "Over a medium heat, add the mince to a dry saucepan. Break it up with a wooden spoon and cook until all the meat has browned nicely (around 4 minutes).",
+      "Add the celery and carrot and sweat with the mince for 5 minutes until starting to soften.",
+      "Meanwhile, bring a pan of water to the boil and add the pasta. Cook following the packet instructions.",
+      "Add the smoked paprika, garlic, crumbled stock cube, Worcestershire sauce and mixed herbs to the mince and give it a good stir.",
+      "Add the passata, then fill up the empty carton with about 150ml of tap water, swirl it around and add to the pan too. Give it all a good stir and let it simmer for 10 minutes until your pasta has cooked.",
+      "If the sauce gets too dry and starts to stick, add some pasta cooking water — but this sauce is delicious when thick, so be careful not to add too much.",
+      "Once the pasta is cooked, drain and add to the sauce, give it a good stir and serve with some green veg on the side."
+    ]
+  },
+  // ── BREAD & SIDES ───────────────────────────────────────────────────────
+  {
+    id: 48, name: "Crusty White Sandwich Loaf (GF)", cat: "Bread", stamp: "Bread",
+    serves: "1 loaf", time: "1 hr + 30–45 mins proving", source: "GF Cookbook",
+    ingredients: [
+      "475ml warm water",
+      "10g active dried yeast (GF)",
+      "25g caster sugar",
+      "180g GF rice flour",
+      "190g GF plain flour",
+      "2 tsp xanthan gum",
+      "25g psyllium husk powder (GF)",
+      "6g salt",
+      "2 tsp cider vinegar",
+      "80g egg white (about 2 large eggs)"
+    ],
+    method: [
+      "Stir yeast and sugar into warm water. Stand 10 mins until frothy.",
+      "Mix flours, xanthan gum, psyllium husk and salt. Add vinegar, egg white and yeast mixture.",
+      "Beat on high 3–5 mins to a thick sticky batter. Rest 10 mins.",
+      "Pour into greased lined 26x12cm loaf tin. Smooth, cover and prove 30–45 mins.",
+      "Preheat oven to 240°C fan. Slash loaf, add a mug of boiling water to the oven base.",
+      "Bake 20 mins, reduce to 200°C fan, bake 30 mins more until golden and hollow when tapped."
+    ]
+  },
+  {
+    id: 49, name: "Artisan Loaf (GF)", cat: "Bread", stamp: "Bread",
+    serves: "1 loaf", time: "1 hr + 30–45 mins proving", source: "GF Cookbook",
+    note: "Uses buckwheat flour — nutty, wholegrain flavour. Can be baked in a skillet.",
+    ingredients: [
+      "475ml warm water",
+      "10g active dried yeast (GF)",
+      "25g caster sugar",
+      "180g GF buckwheat flour",
+      "190g GF plain flour",
+      "2 tsp xanthan gum",
+      "25g psyllium husk powder (GF)",
+      "6g salt",
+      "2 tsp cider vinegar",
+      "80g egg white",
+      "Pumpkin and poppy seeds (optional)"
+    ],
+    method: [
+      "Stir yeast and sugar into warm water. Stand 10 mins until frothy.",
+      "Mix flours, xanthan gum, psyllium husk and salt. Add vinegar, egg white and yeast mixture. Beat on high 3–5 mins. Rest 10 mins.",
+      "Pour into floured proving basket. Prove 30–45 mins.",
+      "Invert onto parchment in a 28cm skillet. Add seeds if using. Slash top.",
+      "Bake at 240°C fan 20 mins, reduce to 200°C fan and bake 30 mins more. Cool completely."
+    ]
+  },
+  {
+    id: 50, name: "3-Ingredient Pizza Dough (GF)", cat: "Bread", stamp: "Bread",
+    serves: "500g (2 pizzas)", time: "15 mins + 30 mins rest", source: "GF Cookbook",
+    ingredients: [
+      "250g GF self-raising flour, plus extra",
+      "260g Greek yoghurt (or thick plain yoghurt)",
+      "¾ tsp xanthan gum",
+      "Pinch of salt"
+    ],
+    method: [
+      "Mix all ingredients with a spatula then bring together with your hands to a slightly sticky ball.",
+      "Knead briefly on a floured surface until smooth. Add flour or yoghurt to adjust.",
+      "Cover and rest 30 mins. Roll out and use as a pizza base or calzone."
+    ]
+  },
+  {
+    id: 51, name: "5-Ingredient Crumpets (GF)", cat: "Bread", stamp: "Bread",
+    serves: "10 crumpets", time: "30 mins + 1 hr proving", source: "GF Cookbook",
+    ingredients: [
+      "400ml milk, warmed",
+      "2 tsp caster sugar",
+      "1 tbsp active dried yeast (GF)",
+      "300g GF self-raising flour",
+      "½ tsp bicarbonate of soda",
+      "½ tsp salt",
+      "Vegetable oil for cooking"
+    ],
+    method: [
+      "Mix milk, sugar and yeast. Stand 10 mins until frothy.",
+      "Mix flour, bicarb and salt. Add frothy milk. Beat 2 mins.",
+      "Cover and prove in a warm place for at least 1 hour until bubbles appear.",
+      "Heat a frying pan with oil. Place egg rings in pan. Spoon in 2½ tbsp batter each.",
+      "Cook 5 mins until surface is dry and bubbled. Remove rings, flip, cook 1 min. Serve with butter."
+    ]
+  },
+  {
+    id: 52, name: "Garlic & Rosemary Focaccia (GF)", cat: "Bread", stamp: "Bread",
+    serves: "4–5", time: "45 mins + 1 hr proving", source: "GF Cookbook",
+    ingredients: [
+      "280ml warm water",
+      "7g active dried yeast (GF)",
+      "15g caster sugar",
+      "260g GF white bread flour or GF plain flour",
+      "2 tsp xanthan gum",
+      "15g psyllium husk powder (GF)",
+      "6g salt",
+      "1 large egg",
+      "1 tsp cider vinegar",
+      "60ml olive oil",
+      "Garlic-infused oil, to finish",
+      "Fresh rosemary sprigs, to finish",
+      "Maldon sea salt, to finish"
+    ],
+    method: [
+      "Mix yeast, sugar and warm water. Stand 10 mins until frothy.",
+      "Combine flour, xanthan gum, psyllium husk and salt. Add egg, vinegar, oil and yeast mixture. Beat on high 3 mins. Rest 10 mins.",
+      "Oil a 23cm square tin. Tip in dough and spread with oiled hands. Prove 1 hr.",
+      "Preheat oven to 210°C fan. Make deep dimples. Drizzle garlic oil, scatter rosemary and salt.",
+      "Bake 25–30 mins until golden."
+    ]
+  },
+  {
+    id: 53, name: "Yorkshire Puddings (GF)", cat: "Bread", stamp: "Bread",
+    serves: "12", time: "30 mins", source: "GF Cookbook",
+    note: "Also works perfectly for toad in the hole.",
+    ingredients: [
+      "Vegetable oil for the tray",
+      "200g cornflour (cornstarch)",
+      "6 eggs",
+      "300ml milk"
+    ],
+    method: [
+      "Preheat oven to 200°C fan. Add 1 tsp oil to each hole of a 12-hole muffin tray. Heat 10–15 mins until spitting hot.",
+      "Whisk cornflour and eggs. Gradually whisk in milk. Pour into a jug.",
+      "Remove tray from oven, pour batter into holes to just under ¾ full. Return immediately.",
+      "Bake 15–20 mins without opening the door until risen, golden and crisp."
+    ]
+  },
+  {
+    id: 54, name: "Lazy Gluten-Free Gravy", cat: "Bread", stamp: "Bread",
+    serves: "400ml", time: "10 mins", source: "GF Cookbook",
+    ingredients: [
+      "50g butter",
+      "3 tbsp GF plain flour",
+      "500ml GF beef or chicken stock",
+      "½ tsp gravy browning sauce",
+      "½ tsp black pepper"
+    ],
+    method: [
+      "Melt butter. Add flour and whisk to a smooth paste.",
+      "Add stock, gravy browning and pepper. Stir well.",
+      "Bring to the boil, simmer until thickened. Cool 5 mins before serving."
+    ]
+  },
+  // ── BAKING & DESSERTS ───────────────────────────────────────────────────
+  {
+    id: 55, name: "Triple Chocolate Brownies (GF)", cat: "Baking", stamp: "Baking",
+    serves: "9", time: "45 mins", source: "GF Cookbook",
+    ingredients: [
+      "250g butter",
+      "125g dark chocolate",
+      "125g milk chocolate",
+      "100g GF plain flour",
+      "50g cocoa powder",
+      "4 medium eggs",
+      "280g caster sugar",
+      "60g white chocolate chips",
+      "60g milk chocolate chips",
+      "60g dark chocolate chips"
+    ],
+    method: [
+      "Preheat oven to 160°C fan. Grease and line a 23cm square tin.",
+      "Melt butter and both chocolates together. Cool to near room temperature.",
+      "Whisk eggs and sugar until lighter in colour. Fold in chocolate mixture.",
+      "Fold in flour and cocoa. Fold in all chocolate chips.",
+      "Pour into tin and bake 35–40 mins until a shiny crust forms. Cool completely before slicing."
+    ]
+  },
+  {
+    id: 56, name: "Bakery-Style Choc Chip Cookies (GF)", cat: "Baking", stamp: "Baking",
+    serves: "15 cookies", time: "20 mins", source: "GF Cookbook",
+    ingredients: [
+      "125g butter, softened",
+      "100g light brown sugar",
+      "100g caster sugar",
+      "1 large egg",
+      "1 tsp vanilla extract",
+      "225g GF self-raising flour",
+      "½ tsp bicarbonate of soda",
+      "½ tsp salt",
+      "225g chocolate chips (white, milk or dark)"
+    ],
+    method: [
+      "Preheat oven to 180°C fan. Line two trays with parchment.",
+      "Cream butter and sugars until light and fluffy. Add egg and vanilla.",
+      "Mix in flour, bicarb and salt. Stir in chocolate chips.",
+      "Roll into small balls and place on trays with plenty of room.",
+      "Bake 9–10 mins until just golden at edges but still soft."
+    ]
+  },
+  {
+    id: 57, name: "White Chocolate & Raspberry Cupcakes (GF)", cat: "Baking", stamp: "Baking",
+    serves: "12", time: "35 mins", source: "GF Cookbook",
+    ingredients: [
+      "175g caster sugar",
+      "175g butter, softened",
+      "170g GF self-raising flour",
+      "½ tsp GF baking powder",
+      "¾ tsp xanthan gum",
+      "3 large eggs, beaten",
+      "½ tsp vanilla",
+      "125g fresh raspberries",
+      "100g white chocolate chips",
+      "For the buttercream: 125g white chocolate (melted)",
+      "150g butter",
+      "300g icing sugar"
+    ],
+    method: [
+      "Preheat oven to 160°C fan. Line a 12-hole tin with cases.",
+      "Cream butter and sugar. Add flour, eggs, vanilla, baking powder and xanthan gum. Mix well.",
+      "Fold in raspberries and white chocolate chips.",
+      "Bake 20–25 mins until golden. Cool completely.",
+      "For buttercream: beat butter pale, add icing sugar in stages, beat in cooled melted chocolate. Pipe onto cupcakes."
+    ]
+  },
+  {
+    id: 58, name: "Ultimate Chocolate Fudge Cake (GF)", cat: "Baking", stamp: "Baking",
+    serves: "12 slices", time: "1 hr", source: "GF Cookbook",
+    ingredients: [
+      "190ml milk",
+      "1 tbsp lemon juice (stand 10 mins)",
+      "200g GF plain flour",
+      "50g cocoa powder",
+      "160g caster sugar",
+      "150g light brown sugar",
+      "1 tsp GF baking powder",
+      "1 tsp bicarbonate of soda",
+      "½ tsp xanthan gum",
+      "2 eggs",
+      "80ml melted butter",
+      "1 tbsp vanilla",
+      "1 tbsp instant coffee dissolved in 190ml boiling water",
+      "For the icing: 200g dark chocolate",
+      "155g butter",
+      "90ml double cream"
+    ],
+    method: [
+      "Preheat oven to 160°C fan. Grease two 20cm round tins.",
+      "Combine dry ingredients. Add eggs, butter and vanilla to curdled milk; beat smooth.",
+      "Mix wet into dry. Stir in coffee water. Split between tins and bake 30–35 mins.",
+      "Make icing: melt chocolate, butter and cream together. Cool until spreadable.",
+      "Sandwich and cover cakes with icing."
+    ]
+  },
+  {
+    id: 59, name: "Classic Carrot Cake (GF)", cat: "Baking", stamp: "Baking",
+    serves: "12 slices", time: "45 mins", source: "GF Cookbook",
+    ingredients: [
+      "4 eggs",
+      "190g light brown sugar",
+      "40g caster sugar",
+      "200ml vegetable oil",
+      "265g GF self-raising flour",
+      "1½ tsp bicarbonate of soda",
+      "2 tsp cinnamon",
+      "1 tsp ginger",
+      "Zest of 1 large orange",
+      "250g carrots, grated",
+      "60g pecans (optional)",
+      "For the icing: 150g butter",
+      "150g icing sugar",
+      "300g full-fat cream cheese",
+      "1 tsp vanilla"
+    ],
+    method: [
+      "Preheat oven to 160°C fan. Grease two 20cm tins.",
+      "Mix eggs, sugars and oil. Fold in sifted dry ingredients.",
+      "Fold in orange zest, carrots and pecans. Divide between tins and bake 30 mins.",
+      "Cream cheese icing: beat butter until pale, add icing sugar, then cream cheese and vanilla.",
+      "When cakes are completely cold, sandwich and ice."
+    ]
+  },
+  {
+    id: 60, name: "Lemon Drizzle Cake (GF)", cat: "Baking", stamp: "Baking",
+    serves: "12 slices", time: "1 hr 15 mins", source: "GF Cookbook",
+    ingredients: [
+      "175g butter",
+      "175g caster sugar",
+      "Zest of 2 lemons",
+      "3 medium eggs",
+      "100g GF self-raising flour",
+      "75g ground almonds",
+      "For the drizzle: 100g caster sugar",
+      "Zest and juice of 1 lemon, plus juice of 1 more",
+      "For the icing: 120g icing sugar",
+      "Juice of 2 lemons",
+      "Zest of 1 lemon"
+    ],
+    method: [
+      "Preheat oven to 160°C fan. Grease and line a 900g loaf tin.",
+      "Cream butter, sugar and lemon zest. Add eggs one at a time. Fold in flour and ground almonds.",
+      "Bake 45–50 mins until golden and skewer comes out clean.",
+      "Mix drizzle ingredients. Poke holes and pour drizzle over hot cake to soak in. Cool.",
+      "Mix icing and drizzle over the cooled cake."
+    ]
+  },
+  {
+    id: 61, name: "Fried Jam Doughnuts (GF)", cat: "Baking", stamp: "Baking",
+    serves: "12", time: "30 mins + 1 hr chilling", source: "GF Cookbook",
+    ingredients: [
+      "175g GF self-raising flour",
+      "55g cornflour",
+      "60g caster sugar",
+      "1 tsp GF baking powder",
+      "¼ tsp salt",
+      "1 large egg",
+      "150ml milk",
+      "35g melted butter",
+      "Vegetable oil for frying",
+      "Caster sugar for coating",
+      "Raspberry jam to fill"
+    ],
+    method: [
+      "Mix dry ingredients. Add egg, milk and melted butter. Whisk smooth.",
+      "Pipe batter in 7cm discs onto parchment. Freeze 1 hour.",
+      "Heat oil to 170°C. Fry frozen discs in batches 6–8 mins, turning.",
+      "Drain, toss in sugar while warm.",
+      "Poke a hole in each side and pipe jam generously into the middle."
+    ]
+  },
+  {
+    id: 62, name: "Baked Ring Doughnuts (GF)", cat: "Baking", stamp: "Baking",
+    serves: "15", time: "45 mins", source: "GF Cookbook",
+    note: "Finish with sugar coating or glazed icing and sprinkles.",
+    ingredients: [
+      "150ml milk",
+      "1 tbsp lemon juice (curdle for 10 mins)",
+      "345g GF self-raising flour",
+      "175g caster sugar",
+      "¾ tsp xanthan gum",
+      "1 tsp cinnamon (optional)",
+      "75g melted butter",
+      "50g vegetable oil",
+      "2 eggs",
+      "1 tsp vanilla",
+      "For the sugar coating: 75g melted butter",
+      "150g granulated sugar",
+      "OR for the icing: 85g icing sugar",
+      "3 tbsp milk",
+      "1 tsp vanilla",
+      "Food colouring, sprinkles"
+    ],
+    method: [
+      "Preheat oven to 160°C fan. Grease a doughnut tin.",
+      "Mix dry ingredients. Whisk wet ingredients. Combine — do not over-mix.",
+      "Spoon into tin to the top. Bake 15 mins until risen and golden. Cool on wire rack.",
+      "For sugar: dip warm doughnuts in melted butter, then roll in sugar.",
+      "For icing: mix and dip tops in. Add sprinkles and allow to set."
+    ]
+  },
+  {
+    id: 63, name: "Churros (GF)", cat: "Baking", stamp: "Baking",
+    serves: "4", time: "45 mins", source: "GF Cookbook",
+    note: "Freezer-friendly — pipe onto parchment, freeze, then fry from frozen.",
+    ingredients: [
+      "250ml water",
+      "60g butter",
+      "20g caster sugar",
+      "135g GF plain flour",
+      "¼ tsp xanthan gum",
+      "½ tsp vanilla",
+      "1 egg, beaten",
+      "Vegetable oil for frying",
+      "For the sugar coating: 100g caster sugar",
+      "1 tsp cinnamon",
+      "For the chocolate sauce: 100g dark chocolate",
+      "75ml milk",
+      "2 tbsp maple syrup"
+    ],
+    method: [
+      "Make chocolate sauce: melt chocolate, milk and maple syrup. Keep warm.",
+      "Bring water, butter and sugar to a gentle boil. Remove from heat, add flour and xanthan gum, stir vigorously.",
+      "Cool 10 mins. Add vanilla and gradually stir in beaten egg until smooth.",
+      "Heat 4cm oil to 170°C. Pipe 15cm churros directly into oil (snip with scissors). Fry 2 mins each side.",
+      "Toss in cinnamon sugar while warm. Serve with chocolate sauce."
+    ]
+  },
+  {
+    id: 64, name: "Salted Caramel No-Bake Cheesecake (GF)", cat: "Baking", stamp: "Baking",
+    serves: "10–12", time: "45 mins + 12 hrs chilling", source: "GF Cookbook",
+    note: "Freezer-friendly. Defrost thoroughly before adding the caramel and popcorn topping.",
+    ingredients: [
+      "For the base: 320g GF digestive biscuits",
+      "2 tbsp brown sugar",
+      "150g melted butter",
+      "For the filling: 700g full-fat cream cheese or mascarpone",
+      "100g icing sugar",
+      "Pinch of salt",
+      "3–4 tsp caramel extract",
+      "300ml double cream",
+      "150g GF chocolate caramels (optional)",
+      "To serve: 200g salted caramel sauce",
+      "Toffee popcorn"
+    ],
+    method: [
+      "Blitz biscuits to crumbs. Mix with sugar and melted butter. Press into 20cm tin. Chill 30 mins.",
+      "Beat cream cheese, icing sugar, salt and caramel extract 10–20 secs. Add cream and beat on medium 2 mins until firm.",
+      "Fold in chopped caramels if using. Spread over base. Chill 12 hrs minimum.",
+      "Remove from tin, pour caramel sauce over top and decorate with popcorn."
+    ]
+  },
+  {
+    id: 65, name: "Chocolate Éclairs (GF)", cat: "Baking", stamp: "Baking",
+    serves: "14", time: "45 mins", source: "GF Cookbook",
+    ingredients: [
+      "1 quantity GF Choux Pastry",
+      "200ml double cream",
+      "4 tsp icing sugar",
+      "1 tsp vanilla",
+      "For the ganache: 175ml double cream",
+      "175g dark or milk chocolate (finely chopped)"
+    ],
+    method: [
+      "Preheat oven to 200°C fan. Pipe choux pastry into 10cm lines on lined baking sheets.",
+      "Bake 25 mins (reducing to 150°C fan after 15 mins) until puffy and golden.",
+      "Remove and pierce base 3 times. Cool upside down in switched-off oven with door ajar 20 mins, then on wire rack.",
+      "Whip cream, icing sugar and vanilla to stiff peaks. Pipe or spoon into éclairs.",
+      "Make ganache: heat cream to near boiling, pour over chocolate, stir until smooth. Dip tops of éclairs in ganache."
+    ]
+  },
+  {
+    id: 66, name: "Chocolate Fondants", cat: "Baking", stamp: "Dessert",
+    serves: "5", time: "30 mins", source: "GF Cookbook",
+    note: "Freezer-friendly — freeze the mixture in the moulds and bake from frozen, adding 5 mins to the cooking time. You'll need 5 mini pudding moulds.",
+    ingredients: [
+      "For the moulds: 10g butter, melted",
+      "Cocoa powder for dusting",
+      "200g dark chocolate, broken into pieces",
+      "100g butter",
+      "100g caster sugar",
+      "3 eggs",
+      "2 egg yolks",
+      "50g GF plain flour",
+      "50g finely chopped hazelnuts (optional)"
+    ],
+    method: [
+      "Prepare your mini pudding moulds: brush the melted butter over the insides, sift a little cocoa powder in, coat the sides and base, and place in the freezer to chill while you make the fondant mixture.",
+      "Melt chocolate and butter together — either in the microwave, stirring every 20–30 seconds until fully melted, or in a heatproof bowl over a saucepan of gently boiling water. Allow to cool briefly.",
+      "In a large mixing bowl, whisk the sugar, eggs and egg yolks until slightly thickened and frothy. Gradually add the cooled chocolate and butter mixture to the bowl. Fold in gently, then fold in the flour and chopped hazelnuts (if using) until well combined.",
+      "Remove pudding moulds from the freezer. Pour the fondant mixture into a jug then evenly divide between the moulds, leaving a 1cm gap at the top of each. Place in the fridge to chill for 30 minutes (or up to 6 hours).",
+      "Preheat oven to 180°C fan / 200°C / 400°F. Place chilled moulds on a baking sheet and bake for 13–15 minutes until risen with a nicely set top.",
+      "Remove from oven and leave the fondants to sit in their moulds for about 1 minute before inverting onto plates to serve. Enjoy with vanilla ice cream."
+    ]
+  },
+  {
+    id: 67, name: "Sticky Toffee Pudding", cat: "Baking", stamp: "Dessert",
+    serves: "8", time: "40 mins", source: "GF Cookbook",
+    note: "Can be made as one large pudding — double the mixture, pour into a greased casserole dish and cook for 40 minutes.",
+    ingredients: [
+      "135ml milk",
+      "1 tbsp lemon juice",
+      "50g butter, softened, plus extra for greasing",
+      "1 large egg",
+      "85g light brown sugar",
+      "110g GF self-raising flour",
+      "½ tsp ground ginger",
+      "½ tsp bicarbonate of soda",
+      "¾ tsp GF baking powder",
+      "1½ tbsp black treacle (molasses)",
+      "For the sticky toffee sauce: 115g light brown sugar",
+      "1 tbsp black treacle (molasses)",
+      "275ml double cream",
+      "90g butter"
+    ],
+    method: [
+      "Preheat oven to 160°C fan / 180°C / 350°F. Grease 6–8 mini pudding moulds with a little butter.",
+      "In a jug, mix milk and lemon juice and allow to stand for 10 minutes until it curdles a little.",
+      "In a large mixing bowl, add the remaining pudding ingredients and whisk together until thoroughly mixed. Slowly add the curdled milk in two stages, whisking in between until well combined.",
+      "Pour mixture into a jug and divide evenly between the buttered moulds, leaving a 1cm gap at the top of each. Place moulds on a baking tray and bake for 20–22 minutes until golden.",
+      "While the puddings bake, make the sticky toffee sauce: add all sauce ingredients to a small saucepan over a low heat. Allow the sugar to dissolve and everything to melt down, stirring occasionally. Bring to the boil and stir for 2–3 minutes, then remove from the heat. Allow to cool until it reaches a lovely pourable, sticky consistency.",
+      "Remove puddings from the oven and allow to sit in their moulds for about 1 minute. Carefully invert onto serving plates. Serve with sticky toffee sauce poured all over."
+    ]
+  }
+];
+
+// ── RENDER ENGINE ──────────────────────────────────────────────────────────────
+
+const grid = document.getElementById('recipeGrid');
+const searchInput = document.getElementById('searchInput');
+const pillContainer = document.getElementById('pillContainer');
+const visibleCount = document.getElementById('visibleCount');
+const totalCount = document.getElementById('totalCount');
+
+totalCount.textContent = RECIPES.length + ' recipes';
+visibleCount.textContent = RECIPES.length;
+
+const stampClass = {
+  'Mains': '', 'Vegetarian': 'veg', 'Breakfast': 'breakfast', 'Kids': 'kids',
+  'Bread': 'bread', 'Baking': 'baking', 'Dessert': 'dessert'
+};
+
+// ── QUANTITY SCALING ENGINE ─────────────────────────────────────────────────
+
+window.recipeScales = new Map(); // recipeId -> 0.5 | 1 | 2
+
+const UNICODE_FRACTIONS = {
+  '½': 0.5, '⅓': 1/3, '⅔': 2/3, '¼': 0.25, '¾': 0.75,
+  '⅕': 0.2, '⅖': 0.4, '⅗': 0.6, '⅘': 0.8,
+  '⅙': 1/6, '⅚': 5/6, '⅛': 0.125, '⅜': 0.375, '⅝': 0.625, '⅞': 0.875
+};
+const FRACTION_CHARS = Object.keys(UNICODE_FRACTIONS).join('');
+
+// Matches a leading quantity like "2", "1½", "1 1/2", "½", "1.5", "2-3" (range, takes first number)
+const QTY_REGEX = new RegExp(
+  `^(\\d+(?:\\.\\d+)?)?\\s*([${FRACTION_CHARS}]|\\d+\\/\\d+)?`
+);
+
+function parseLeadingQuantity(text) {
+  const trimmed = text.trim();
+  const match = trimmed.match(QTY_REGEX);
+  if (!match || (!match[1] && !match[2])) return null;
+
+  let value = 0;
+  if (match[1]) value += parseFloat(match[1]);
+  if (match[2]) {
+    if (UNICODE_FRACTIONS[match[2]] !== undefined) {
+      value += UNICODE_FRACTIONS[match[2]];
+    } else if (match[2].includes('/')) {
+      const [num, den] = match[2].split('/').map(Number);
+      if (den) value += num / den;
+    }
+  }
+
+  if (value === 0 && !match[1] && !match[2]) return null;
+
+  // match[0] is the full matched prefix including any internal space (e.g. "1 ½"),
+  // but NOT trailing space before the unit — strip any trailing whitespace it picked up.
+  const matchedLength = match[0].replace(/\s+$/, '').length;
+
+  return { value, length: matchedLength };
+}
+
+// Convert a decimal back into a friendly string: whole + simple fraction where possible
+function formatQuantity(value) {
+  if (value <= 0) return '0';
+  const whole = Math.floor(value);
+  const remainder = value - whole;
+
+  const fractionMap = [
+    [0.125, '⅛'], [0.25, '¼'], [0.333, '⅓'], [0.375, '⅜'],
+    [0.5, '½'], [0.625, '⅝'], [0.667, '⅔'], [0.75, '¾'], [0.875, '⅞']
+  ];
+
+  let closestFrac = null;
+  let closestDiff = 0.02; // tight tolerance — only snap to a fraction if very close
+  for (const [dec, sym] of fractionMap) {
+    const diff = Math.abs(remainder - dec);
+    if (diff < closestDiff) { closestDiff = diff; closestFrac = sym; }
+  }
+
+  if (closestFrac) {
+    return whole > 0 ? `${whole}${closestFrac}` : closestFrac;
+  }
+  // No clean fraction match — round to 2 decimals, strip trailing zeros
+  const rounded = Math.round(value * 100) / 100;
+  return String(rounded);
+}
+
+// Scale just the leading quantity of an ingredient string; leave everything else untouched
+function scaleIngredientText(text, scale) {
+  if (scale === 1) return text;
+  // Don't try to scale a range like "400-500g" or "2-3 tbsp" — ambiguous which number to scale.
+  if (/^\d+(?:\.\d+)?\s*[-–]\s*\d+/.test(text.trim())) return text;
+  const parsed = parseLeadingQuantity(text);
+  if (!parsed || parsed.value === 0) return text; // no leading number — can't scale (e.g. "Salt and pepper")
+  const scaledValue = parsed.value * scale;
+  const formatted = formatQuantity(scaledValue);
+  return formatted + text.slice(parsed.length);
+}
+
+// Scale a "serves" string like "4" or "2–3" or "1 loaf (15 slices)"
+function scaleServesText(servesText, scale) {
+  if (!servesText || scale === 1) return servesText;
+  // Handle simple numeric or range "2-3" / "2–3"
+  const rangeMatch = servesText.match(/^(\d+)\s*[-–]\s*(\d+)$/);
+  if (rangeMatch) {
+    const a = Math.round(parseInt(rangeMatch[1]) * scale);
+    const b = Math.round(parseInt(rangeMatch[2]) * scale);
+    return `${a}-${b}`;
+  }
+  const numMatch = servesText.match(/^(\d+)/);
+  if (numMatch) {
+    const scaledNum = Math.round(parseInt(numMatch[1]) * scale);
+    return scaledNum + servesText.slice(numMatch[1].length);
+  }
+  return servesText; // can't parse — leave as-is
+}
+
+function setScale(id, scale) {
+  const current = window.recipeScales.get(id) || 1;
+  window.recipeScales.set(id, scale);
+  // Re-render just this card to reflect new quantities
+  const r = RECIPES.find(x => x.id === id);
+  if (!r) return;
+  const cardEl = document.querySelector(`.card[data-id="${id}"]`);
+  const wasOpen = cardEl && cardEl.classList.contains('open');
+  const newCardHtml = renderCard(r);
+  const temp = document.createElement('div');
+  temp.innerHTML = newCardHtml.trim();
+  const newCardEl = temp.firstElementChild;
+  if (wasOpen) newCardEl.classList.add('open');
+  cardEl.replaceWith(newCardEl);
+}
+
+function renderCard(r) {
+  const sc = stampClass[r.stamp] || '';
+  const scale = window.recipeScales.get(r.id) || 1;
+  const scaledServes = scaleServesText(r.serves, scale);
+  const metaParts = [
+    r.serves ? `<span>🍽 ${scaledServes}</span>` : '',
+    r.time   ? `<span>⏱ ${r.time}</span>` : '',
+    r.source ? `<span>📖 ${r.source}</span>` : '',
+  ].filter(Boolean).join('');
+
+  const noteHtml = r.note
+    ? `<div class="note-box">💡 ${r.note}</div>` : '';
+
+  const ingHtml = (r.ingredients || []).map(i =>
+    `<li>${scaleIngredientText(i, scale)}</li>`).join('');
+
+  const methodHtml = Array.isArray(r.method) && r.method.length
+    ? r.method.map((s, i) =>
+        `<li><span class="step-num">${i+1}</span>${s}</li>`
+      ).join('')
+    : null;
+
+  return `
+    <div class="card${window.selectedRecipes && window.selectedRecipes.has(r.id) ? ' selected' : ''}" data-id="${r.id}" data-cat="${r.cat}">
+      <div class="card-header">
+        <div class="select-wrap" onclick="event.stopPropagation(); toggleSelect(${r.id})">
+          <div class="select-checkbox${window.selectedRecipes && window.selectedRecipes.has(r.id) ? ' checked' : ''}" id="check-${r.id}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-title-group" onclick="toggleCard(${r.id})" style="cursor:pointer; flex:1;">
+          <span class="card-stamp ${sc}">${r.stamp}</span>${r.isVeg && r.stamp !== 'Vegetarian' ? '<span class="card-stamp veg" style="margin-left:4px;">Veg</span>' : ''}
+          <h2>${r.name}</h2>
+          ${metaParts ? `<div class="card-meta">${metaParts}</div>` : ''}
+          ${(r.isKid || r.isBatch || aaronFavs && aaronFavs.has(r.id) || katieFavs && katieFavs.has(r.id)) ? `<div class="card-badges">${r.isKid ? '<span class="badge badge-kid">👶 Kid friendly</span>' : ''}${r.isBatch ? '<span class="badge badge-batch">🧊 Batch cook</span>' : ''}${aaronFavs && aaronFavs.has(r.id) ? '<span class="badge badge-aaron">⭐ Aaron\'s fav</span>' : ''}${katieFavs && katieFavs.has(r.id) ? '<span class="badge badge-katie">⭐ Katie\'s fav</span>' : ''}</div>` : ''}
+          <div class="scale-row" onclick="event.stopPropagation()">
+            <span class="scale-label">Scale:</span>
+            <div class="scale-toggle">
+              <button class="scale-btn${scale===0.5?' active':''}" onclick="setScale(${r.id}, 0.5)">×½</button>
+              <button class="scale-btn${scale===1?' active':''}" onclick="setScale(${r.id}, 1)">×1</button>
+              <button class="scale-btn${scale===2?' active':''}" onclick="setScale(${r.id}, 2)">×2</button>
+            </div>
+            ${scale !== 1 ? `<span class="scaled-note">scaled</span>` : ''}
+          </div>
+        </div>
+        <div class="expand-btn" aria-label="Expand recipe" onclick="toggleCard(${r.id})">+</div>
+        <button class="star-btn ${getStarClass(r.id)}" id="star-${r.id}" onclick="event.stopPropagation(); toggleFav(${r.id})" title="Add to favourites">⭐</button>
+      </div>
+      <div class="card-body">
+        <div class="card-body-inner">
+          ${noteHtml}
+          <p class="section-label">Ingredients</p>
+          <ul class="ingredient-list">${ingHtml}</ul>
+          ${methodHtml ? `
+            <p class="section-label">Method</p>
+            <ul class="method-list">${methodHtml}</ul>
+          ` : '<p class="section-label" style="color:var(--muted);font-size:12px;font-style:italic">Method not yet saved</p>'}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderAll(recipes) {
+  if (!recipes.length) {
+    grid.innerHTML = `
+      <div class="no-results">
+        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <p>No recipes found. Try a different search or filter.</p>
+      </div>`;
+  } else {
+    grid.innerHTML = recipes.map(renderCard).join('');
+  }
+  visibleCount.textContent = recipes.length;
+}
+
+function toggleCard(id) {
+  const card = document.querySelector(`.card[data-id="${id}"]`);
+  if (!card) return;
+  const isOpen = card.classList.contains('open');
+  // Close all others
+  document.querySelectorAll('.card.open').forEach(c => c.classList.remove('open'));
+  if (!isOpen) {
+    card.classList.add('open');
+    setTimeout(() => {
+      card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 50);
+  }
+  // Update + / - buttons
+  document.querySelectorAll('.card .expand-btn').forEach(b => b.textContent = '+');
+  if (!isOpen) card.querySelector('.expand-btn').textContent = '−';
+}
+
+let currentCat = 'all';
+let currentSearch = '';
+let vegOnly = false;
+let kidOnly = false;
+let batchOnly = false;
+let aaronOnly = false;
+let katieOnly = false;
+let currentSource = 'all';
+
+function filter() {
+  const q = currentSearch.toLowerCase();
+  const filtered = RECIPES.filter(r => {
+    const catMatch = currentCat === 'all' || r.cat === currentCat;
+    if (!catMatch) return false;
+    if (vegOnly && !r.isVeg) return false;
+    if (kidOnly && !r.isKid) return false;
+    if (batchOnly && !r.isBatch) return false;
+    if (aaronOnly && !aaronFavs.has(r.id)) return false;
+    if (katieOnly && !katieFavs.has(r.id)) return false;
+    if (currentSource !== 'all') {
+      const src = r.source || '(No source listed)';
+      if (src !== currentSource) return false;
+    }
+    if (!q) return true;
+    const searchable = [
+      r.name,
+      r.cat,
+      r.source || '',
+      r.note || '',
+      ...(r.ingredients || []),
+      ...(Array.isArray(r.method) ? r.method : [])
+    ].join(' ').toLowerCase();
+    return searchable.includes(q);
+  });
+  renderAll(filtered);
+}
+
+pillContainer.addEventListener('click', e => {
+  const pill = e.target.closest('.pill');
+  if (!pill) return;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  currentCat = pill.dataset.cat;
+  filter();
+});
+
+searchInput.addEventListener('input', e => {
+  currentSearch = e.target.value;
+  filter();
+});
+
+const vegToggle = document.getElementById('vegToggle');
+vegToggle.addEventListener('click', () => {
+  vegOnly = !vegOnly;
+  vegToggle.setAttribute('aria-pressed', String(vegOnly));
+  filter();
+});
+
+const kidToggle = document.getElementById('kidToggle');
+kidToggle.addEventListener('click', () => {
+  kidOnly = !kidOnly;
+  kidToggle.setAttribute('aria-pressed', String(kidOnly));
+  filter();
+});
+
+const batchToggle = document.getElementById('batchToggle');
+batchToggle.addEventListener('click', () => {
+  batchOnly = !batchOnly;
+  batchToggle.setAttribute('aria-pressed', String(batchOnly));
+  filter();
+});
+
+const aaronToggle = document.getElementById('aaronToggle');
+aaronToggle.addEventListener('click', () => {
+  aaronOnly = !aaronOnly;
+  aaronToggle.setAttribute('aria-pressed', String(aaronOnly));
+  filter();
+});
+
+const katieToggle = document.getElementById('katieToggle');
+katieToggle.addEventListener('click', () => {
+  katieOnly = !katieOnly;
+  katieToggle.setAttribute('aria-pressed', String(katieOnly));
+  filter();
+});
+
+// Populate the source dropdown dynamically from whatever sources actually appear in the data.
+const sourceSelect = document.getElementById('sourceSelect');
+const sourceCounts = new Map();
+RECIPES.forEach(r => {
+  const src = r.source || '(No source listed)';
+  sourceCounts.set(src, (sourceCounts.get(src) || 0) + 1);
+});
+[...sourceCounts.entries()]
+  .sort((a, b) => a[0].localeCompare(b[0]))
+  .forEach(([src, count]) => {
+    const opt = document.createElement('option');
+    opt.value = src;
+    opt.textContent = `${src} (${count})`;
+    sourceSelect.appendChild(opt);
+  });
+
+sourceSelect.addEventListener('change', e => {
+  currentSource = e.target.value;
+  filter();
+});
+
+
+// ── SHOPPING LIST LOGIC ─────────────────────────────────────────────────────
+
+window.selectedRecipes = new Set();
+let checkedOffItems = new Set();
+
+function toggleSelect(id) {
+  if (window.selectedRecipes.has(id)) {
+    window.selectedRecipes.delete(id);
+  } else {
+    window.selectedRecipes.add(id);
+  }
+  // Update checkbox visual without full re-render
+  const checkEl = document.getElementById('check-' + id);
+  const card = document.querySelector(`.card[data-id="${id}"]`);
+  if (checkEl) checkEl.classList.toggle('checked', window.selectedRecipes.has(id));
+  if (card) card.classList.toggle('selected', window.selectedRecipes.has(id));
+  updateTray();
+}
+
+function clearSelection() {
+  window.selectedRecipes.clear();
+  document.querySelectorAll('.select-checkbox.checked').forEach(el => el.classList.remove('checked'));
+  document.querySelectorAll('.card.selected').forEach(el => el.classList.remove('selected'));
+  updateTray();
+}
+
+function updateTray() {
+  const tray = document.getElementById('shoppingTray');
+  const count = window.selectedRecipes.size;
+  document.getElementById('trayCount').textContent = count;
+  document.getElementById('trayPlural').textContent = count === 1 ? '' : 's';
+  tray.classList.toggle('visible', count > 0);
+}
+
+// Categorise an ingredient string into a shopping aisle
+const AISLES = [
+  { name: 'Fruit & Veg', keywords: ['onion','garlic','carrot','potato','pepper','tomato','spinach','courgette','aubergine','cucumber','lemon','lime','orange','herb','basil','coriander','parsley','thyme','rosemary','chilli','ginger','mushroom','kale','avocado','celery','sweet potato','banana','apple','raspberr','blueberr','peach','date','spring onion','beansprout','pomegranate'] },
+  { name: 'Meat & Fish', keywords: ['chicken','beef','pork','mince','sausage','bacon','chorizo','pancetta','salmon','steak','tofu'] },
+  { name: 'Dairy, Eggs & Chilled', keywords: ['egg','milk','butter','cheese','cream','yoghurt','yogurt','mascarpone','mozzarella','cheddar','pecorino','parmesan'] },
+  { name: 'Store Cupboard', keywords: ['flour','sugar','oil','vinegar','rice','pasta','spaghetti','noodle','lentil','chickpea','bean','tomato purée','tomato puree','can ','tin ','stock','soy sauce','cornflour','baking powder','bicarbonate','xanthan','psyllium','yeast','breadcrumb','spice','cumin','paprika','turmeric','cinnamon','oregano','allspice','seasoning','curry powder','chocolate','cocoa','vanilla','honey','maple syrup','jam','peanut butter','sesame','pine nuts','almond','pecan','popcorn'] },
+  { name: 'Bakery', keywords: ['bread','tortilla','pitta','chapati','digestive'] },
+];
+
+function categorise(ingredient) {
+  const lower = ingredient.toLowerCase();
+  for (const aisle of AISLES) {
+    if (aisle.keywords.some(k => lower.includes(k))) return aisle.name;
+  }
+  return 'Other';
+}
+
+// Common units we recognise for summing purposes (after the leading number)
+const KNOWN_UNITS = [
+  'tbsp', 'tsp', 'tablespoons?', 'teaspoons?', 'cups?', 'g', 'kg', 'ml', 'l', 'litres?',
+  'cans?', 'tins?', 'packets?', 'packs?', 'bags?', 'cloves?', 'sprigs?', 'handfuls?',
+  'pinch(?:es)?', 'slices?', 'fl ?oz', 'oz', 'lb'
+];
+const UNIT_REGEX = new RegExp(`^(${KNOWN_UNITS.join('|')})\\b\\.?`, 'i');
+
+// Parse an ingredient string into { qty, unit, rest } where possible.
+// e.g. "2 tbsp olive oil" -> { qty: 2, unit: 'tbsp', rest: 'olive oil' }
+// e.g. "1 x 400g can chopped tomatoes" -> { qty: 1, unit: 'x 400g can', rest: 'chopped tomatoes' }
+// e.g. "3 eggs" -> { qty: 3, unit: '', rest: 'eggs' }
+// Returns null if no leading quantity found (e.g. "Salt and pepper").
+function parseIngredientStructured(text) {
+  const trimmed = text.trim();
+
+  // If the ingredient starts with a range like "400-500g" or "2-3", don't try to
+  // structure/sum it — ranges don't consolidate sensibly. Leave as freeform.
+  if (/^\d+(?:\.\d+)?\s*[-–]\s*\d+/.test(trimmed)) return null;
+
+  const qtyMatch = parseLeadingQuantity(trimmed);
+  if (!qtyMatch) return null;
+
+  let remainder = trimmed.slice(qtyMatch.length).trim();
+
+  // Special case: "1 x 400g can chopped tomatoes" — the "x 400g can" is really part of the unit,
+  // since you can't sensibly halve a can. Capture "x <size><unit> <container>" as part of the unit.
+  const canMatch = remainder.match(/^x\s*(\d+(?:\.\d+)?)\s*(g|kg|ml|l)\s*(cans?|tins?|packets?|jars?)\b\.?\s*/i);
+  if (canMatch) {
+    const containerWord = canMatch[3].toLowerCase().replace(/s$/, ''); // normalise plural -> singular
+    const unit = `x ${canMatch[1]}${canMatch[2]} ${containerWord}`;
+    const rest = remainder.slice(canMatch[0].length).trim();
+    return { qty: qtyMatch.value, unit: unit.toLowerCase(), rest, isDiscreteContainer: true };
+  }
+
+  // Otherwise look for a known unit word right after the quantity
+  const unitMatch = remainder.match(UNIT_REGEX);
+  if (unitMatch) {
+    const unit = unitMatch[1].toLowerCase().replace(/s$/, ''); // normalise plural (tbsps -> tbsp)
+    const rest = remainder.slice(unitMatch[0].length).trim();
+    return { qty: qtyMatch.value, unit, rest, isDiscreteContainer: false };
+  }
+
+  // No unit word — it's a countable item like "3 eggs" or "1 onion, chopped"
+  return { qty: qtyMatch.value, unit: '', rest: remainder, isDiscreteContainer: false };
+}
+
+// Build a grouping key from the "rest" text (the actual ingredient name), ignoring
+// descriptors after a comma/bracket so "1 onion, finely chopped" and "2 onions, sliced"
+// group together as "onion".
+function ingredientNameKey(rest) {
+  return rest
+    .toLowerCase()
+    .replace(/\(.*?\)/g, '')
+    .replace(/,.*$/, '')
+    .replace(/s$/, '') // crude singularisation
+    .trim();
+}
+
+// Format a structured ingredient back into display text, e.g. { qty: 4, unit: 'tbsp', rest: 'olive oil' } -> "4 tbsp olive oil"
+function formatStructured(qty, unit, rest) {
+  const qtyStr = formatQuantity(qty);
+  if (!unit) return `${qtyStr} ${rest}`;
+  if (unit.startsWith('x ')) return `${qtyStr} ${unit} ${rest}`;
+  return `${qtyStr} ${unit} ${rest}`;
+}
+
+function buildShoppingList() {
+  const items = []; // { raw, recipe, aisle, structured }
+  window.selectedRecipes.forEach(id => {
+    const r = RECIPES.find(x => x.id === id);
+    if (!r || !r.ingredients) return;
+    const scale = window.recipeScales.get(id) || 1;
+    r.ingredients.forEach(ing => {
+      const scaledIng = scaleIngredientText(ing, scale);
+      const recipeLabel = scale !== 1 ? `${r.name} (×${scale === 0.5 ? '½' : scale})` : r.name;
+      items.push({
+        raw: scaledIng,
+        recipe: recipeLabel,
+        aisle: categorise(ing),
+        structured: parseIngredientStructured(scaledIng)
+      });
+    });
+  });
+
+  // Group by aisle, then by ingredient name. Within a name group, sum quantities
+  // that share the same unit; keep separate sub-lines for differing units.
+  const grouped = {};
+  items.forEach(item => {
+    if (!grouped[item.aisle]) grouped[item.aisle] = new Map();
+    const aisleMap = grouped[item.aisle];
+
+    if (!item.structured) {
+      // No parseable quantity (e.g. "Salt and pepper") — group by raw text itself
+      const key = item.raw.toLowerCase().trim();
+      if (!aisleMap.has(key)) {
+        aisleMap.set(key, { kind: 'freeform', text: item.raw, recipes: new Set([item.recipe]) });
+      } else {
+        aisleMap.get(key).recipes.add(item.recipe);
+      }
+      return;
+    }
+
+    const { qty, unit, rest, isDiscreteContainer } = item.structured;
+    const nameKey = ingredientNameKey(rest);
+    if (!nameKey) {
+      // Fallback if rest is empty somehow
+      const key = item.raw.toLowerCase().trim();
+      if (!aisleMap.has(key)) {
+        aisleMap.set(key, { kind: 'freeform', text: item.raw, recipes: new Set([item.recipe]) });
+      } else {
+        aisleMap.get(key).recipes.add(item.recipe);
+      }
+      return;
+    }
+
+    if (!aisleMap.has(nameKey)) {
+      aisleMap.set(nameKey, { kind: 'quantified', rest, unitTotals: new Map(), recipes: new Set() });
+    }
+    const entry = aisleMap.get(nameKey);
+    entry.recipes.add(item.recipe);
+    const unitKey = unit || '__count__';
+    if (!entry.unitTotals.has(unitKey)) {
+      entry.unitTotals.set(unitKey, { qty: 0, unit, rest, isDiscreteContainer });
+    }
+    entry.unitTotals.get(unitKey).qty += qty;
+  });
+
+  return grouped;
+}
+
+const AISLE_ORDER = ['Fruit & Veg', 'Meat & Fish', 'Dairy, Eggs & Chilled', 'Bakery', 'Store Cupboard', 'Other'];
+
+function renderShopEntry(entry) {
+  if (entry.kind === 'freeform') {
+    const recipeList = [...entry.recipes];
+    const suffix = recipeList.length > 1
+      ? ` <span style="color:var(--muted); font-size:12px;">(for ${recipeList.join(', ')})</span>`
+      : '';
+    return entry.text + suffix;
+  }
+
+  // Quantified: may have one or more unit groups (e.g. "400g" cans + a separate "tbsp" use)
+  const lines = [...entry.unitTotals.values()].map(u => {
+    if (u.isDiscreteContainer) {
+      const wholeQty = Math.round(u.qty * 10) / 10;
+      const displayUnit = wholeQty > 1 ? u.unit.replace(/(can|tin|packet|jar)$/, '$1s') : u.unit;
+      return `${formatQuantity(wholeQty)} ${displayUnit} ${u.rest}`;
+    }
+    return formatStructured(u.qty, u.unit, u.rest);
+  });
+  const recipeList = [...entry.recipes];
+  const suffix = recipeList.length > 1
+    ? ` <span style="color:var(--muted); font-size:12px;">(for ${recipeList.join(', ')})</span>`
+    : '';
+  return lines.join(' <span style="color:var(--muted);">+</span> ') + suffix;
+}
+
+function openShoppingList() {
+  if (window.selectedRecipes.size === 0) return;
+  const grouped = buildShoppingList();
+  const modalBody = document.getElementById('modalBody');
+  const recipeNames = [...window.selectedRecipes].map(id => {
+    const r = RECIPES.find(x => x.id === id);
+    if (!r) return null;
+    const scale = window.recipeScales.get(id) || 1;
+    return scale !== 1 ? `${r.name} (×${scale === 0.5 ? '½' : scale})` : r.name;
+  }).filter(Boolean);
+
+  document.getElementById('modalSubtitle').textContent =
+    `Consolidated from ${recipeNames.length} recipe${recipeNames.length === 1 ? '' : 's'}`;
+
+  let html = '';
+  AISLE_ORDER.forEach(aisleName => {
+    const map = grouped[aisleName];
+    if (!map || map.size === 0) return;
+    html += `<div class="shop-group"><p class="shop-group-title">${aisleName}</p>`;
+    [...map.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .forEach(([key, entry], idx) => {
+        const displayText = renderShopEntry(entry);
+        const itemId = `${aisleName}-${idx}`.replace(/\s+/g, '_');
+        const isChecked = checkedOffItems.has(itemId);
+        html += `
+          <div class="shop-item">
+            <div class="shop-item-check${isChecked ? ' checked' : ''}" onclick="toggleShopItem('${itemId}', this)"></div>
+            <span class="shop-item-text${isChecked ? ' struck' : ''}" id="text-${itemId}">${displayText}</span>
+          </div>`;
+      });
+    html += `</div>`;
+  });
+
+  html += `
+    <div class="shop-recipes-used">
+      <p>Recipes in this list</p>
+      ${recipeNames.map(n => `<span class="recipe-chip">${n}</span>`).join('')}
+    </div>
+    <div class="modal-footer-actions">
+      <button class="btn btn-primary" onclick="copyShoppingList()">Copy as text</button>
+      <button class="btn btn-ghost" onclick="printShoppingList()">Print</button>
+    </div>
+  `;
+
+  modalBody.innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('visible');
+}
+
+function toggleShopItem(itemId, el) {
+  if (checkedOffItems.has(itemId)) {
+    checkedOffItems.delete(itemId);
+    el.classList.remove('checked');
+    document.getElementById('text-' + itemId).classList.remove('struck');
+  } else {
+    checkedOffItems.add(itemId);
+    el.classList.add('checked');
+    document.getElementById('text-' + itemId).classList.add('struck');
+  }
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('visible');
+}
+
+function renderShopEntryPlainText(entry) {
+  // Same logic as renderShopEntry but without HTML markup, for clipboard/print
+  if (entry.kind === 'freeform') {
+    const recipeList = [...entry.recipes];
+    const suffix = recipeList.length > 1 ? ` (for ${recipeList.join(', ')})` : '';
+    return entry.text + suffix;
+  }
+  const lines = [...entry.unitTotals.values()].map(u => {
+    if (u.isDiscreteContainer) {
+      const wholeQty = Math.round(u.qty * 10) / 10;
+      const displayUnit = wholeQty > 1 ? u.unit.replace(/(can|tin|packet|jar)$/, '$1s') : u.unit;
+      return `${formatQuantity(wholeQty)} ${displayUnit} ${u.rest}`;
+    }
+    return formatStructured(u.qty, u.unit, u.rest);
+  });
+  const recipeList = [...entry.recipes];
+  const suffix = recipeList.length > 1 ? ` (for ${recipeList.join(', ')})` : '';
+  return lines.join(' + ') + suffix;
+}
+
+function shoppingListAsText() {
+  const grouped = buildShoppingList();
+  let text = "SHOPPING LIST\n=============\n\n";
+  AISLE_ORDER.forEach(aisleName => {
+    const map = grouped[aisleName];
+    if (!map || map.size === 0) return;
+    text += `${aisleName.toUpperCase()}\n`;
+    [...map.entries()].sort((a,b) => a[0].localeCompare(b[0])).forEach(([key, entry]) => {
+      text += `  - ${renderShopEntryPlainText(entry)}\n`;
+    });
+    text += `\n`;
+  });
+  return text;
+}
+
+function copyShoppingList() {
+  const text = shoppingListAsText();
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  }).catch(() => {
+    alert('Could not copy automatically — please select and copy the list manually.');
+  });
+}
+
+function printShoppingList() {
+  const text = shoppingListAsText();
+  const win = window.open('', '_blank');
+  win.document.write(`<pre style="font-family: Inter, sans-serif; font-size: 14px; white-space: pre-wrap; padding: 24px;">${text}</pre>`);
+  win.document.close();
+  win.print();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+// ── FAVOURITES PERSISTENCE ──────────────────────────────────────────────────
+
+// Load saved favs from localStorage (stored as arrays of recipe IDs)
+function loadFavs(person) {
+  try {
+    const raw = localStorage.getItem('favs_' + person);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch(e) { return new Set(); }
+}
+
+function saveFavs(person, favSet) {
+  try {
+    localStorage.setItem('favs_' + person, JSON.stringify([...favSet]));
+  } catch(e) {}
+}
+
+// Initialise from localStorage, falling back to the isAaronFav/isKatieFav flags
+// already baked into the recipe data (from the spreadsheet sync)
+let aaronFavs = loadFavs('aaron');
+let katieFavs = loadFavs('katie');
+
+// If localStorage is empty (first time), seed from the baked-in flags
+if (aaronFavs.size === 0) {
+  RECIPES.forEach(r => { if (r.isAaronFav) aaronFavs.add(r.id); });
+  saveFavs('aaron', aaronFavs);
+}
+if (katieFavs.size === 0) {
+  RECIPES.forEach(r => { if (r.isKatieFav) katieFavs.add(r.id); });
+  saveFavs('katie', katieFavs);
+}
+
+// Current active profile: null | 'aaron' | 'katie'
+let activeProfile = null;
+try { activeProfile = localStorage.getItem('activeProfile') || null; } catch(e) {}
+
+function isFav(id) {
+  if (activeProfile === 'aaron') return aaronFavs.has(id);
+  if (activeProfile === 'katie') return katieFavs.has(id);
+  return false;
+}
+
+function getStarClass(id) {
+  if (!activeProfile) return '';
+  if (activeProfile === 'aaron' && aaronFavs.has(id)) return 'starred starred-aaron';
+  if (activeProfile === 'katie' && katieFavs.has(id)) return 'starred starred-katie';
+  return '';
+}
+
+function toggleFav(id) {
+  if (!activeProfile) {
+    // Prompt user to pick a profile first
+    const bar = document.querySelector('.profile-bar');
+    bar.style.outline = '2px solid var(--terra)';
+    bar.style.borderRadius = '4px';
+    setTimeout(() => { bar.style.outline = ''; bar.style.borderRadius = ''; }, 1200);
+    return;
+  }
+  const favSet = activeProfile === 'aaron' ? aaronFavs : katieFavs;
+  if (favSet.has(id)) { favSet.delete(id); } else { favSet.add(id); }
+  saveFavs(activeProfile, favSet);
+
+  // Update just this card's star without full re-render
+  const starEl = document.getElementById('star-' + id);
+  if (starEl) {
+    starEl.className = 'star-btn ' + getStarClass(id);
+  }
+
+  // Also update the recipe's badge row
+  const cardEl = document.querySelector(`.card[data-id="${id}"]`);
+  if (cardEl) updateCardBadges(cardEl, id);
+
+  // Re-filter in case we're in fav-only mode
+  filter();
+}
+
+function updateCardBadges(cardEl, id) {
+  const r = RECIPES.find(x => x.id === id);
+  if (!r) return;
+  const badgesEl = cardEl.querySelector('.card-badges');
+  const newBadges = buildBadgesHtml(r);
+  if (badgesEl) {
+    badgesEl.outerHTML = newBadges;
+  } else {
+    // Insert before card-body
+    const body = cardEl.querySelector('.card-body');
+    if (body && newBadges) body.insertAdjacentHTML('beforebegin', newBadges);
+  }
+}
+
+function buildBadgesHtml(r) {
+  const isAaron = aaronFavs.has(r.id);
+  const isKatie = katieFavs.has(r.id);
+  const parts = [
+    r.isKid   ? '<span class="badge badge-kid">👶 Kid friendly</span>' : '',
+    r.isBatch ? '<span class="badge badge-batch">🧊 Batch cook</span>' : '',
+    isAaron   ? '<span class="badge badge-aaron">⭐ Aaron\'s fav</span>' : '',
+    isKatie   ? '<span class="badge badge-katie">⭐ Katie\'s fav</span>' : '',
+  ].filter(Boolean);
+  return parts.length ? `<div class="card-badges">${parts.join('')}</div>` : '';
+}
+
+function setProfile(person) {
+  activeProfile = person;
+  try { localStorage.setItem('activeProfile', person || ''); } catch(e) {}
+
+  // Update profile button states
+  document.getElementById('profileNone').className = 'profile-btn' + (!person ? ' active-none' : '');
+  document.getElementById('profileAaron').className = 'profile-btn' + (person === 'aaron' ? ' active-aaron' : '');
+  document.getElementById('profileKatie').className = 'profile-btn' + (person === 'katie' ? ' active-katie' : '');
+
+  // Re-render all star buttons without full grid re-render
+  RECIPES.forEach(r => {
+    const starEl = document.getElementById('star-' + r.id);
+    if (starEl) starEl.className = 'star-btn ' + getStarClass(r.id);
+  });
+
+  filter();
+}
+
+// Initialise profile button state on load
+function initProfileButtons() {
+  document.getElementById('profileNone').className = 'profile-btn' + (!activeProfile ? ' active-none' : '');
+  document.getElementById('profileAaron').className = 'profile-btn' + (activeProfile === 'aaron' ? ' active-aaron' : '');
+  document.getElementById('profileKatie').className = 'profile-btn' + (activeProfile === 'katie' ? ' active-katie' : '');
+}
+
+// Initial render
+renderAll(RECIPES);
+initProfileButtons();
+</script>
+</body>
+</html>
+`;
