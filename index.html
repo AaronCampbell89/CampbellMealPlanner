@@ -72,6 +72,438 @@
     margin-top: 14px;
   }
 
+  /* ── TAB NAV ── */
+  .tab-nav {
+    background: var(--green);
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    border-bottom: 2px solid rgba(255,255,255,0.12);
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    padding: 12px 28px;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+  }
+  .tab-btn:hover { color: rgba(255,255,255,0.9); }
+  .tab-btn.active {
+    color: white;
+  }
+  .tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0; right: 0;
+    height: 2px;
+    background: #A8D5B5;
+  }
+
+  /* ── MEAL PLANNER ── */
+  #plannerView { display: none; }
+  #recipesView { display: block; }
+
+  .planner-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+  .planner-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .planner-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--green);
+  }
+  .planner-subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .planner-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .planner-grid {
+    display: grid;
+    grid-template-columns: 100px repeat(7, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+  .pg-cell {
+    background: var(--card);
+    padding: 10px 8px;
+    min-height: 56px;
+  }
+  .pg-day-header {
+    background: var(--green);
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    letter-spacing: 0.04em;
+    padding: 10px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .pg-day-header .day-name { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.75; }
+  .pg-day-header .day-date { font-size: 14px; font-weight: 700; }
+  .pg-meal-label {
+    background: var(--cream);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    padding: 10px 10px;
+  }
+  .pg-slot {
+    min-height: 64px;
+    padding: 6px;
+    position: relative;
+    cursor: pointer;
+  }
+  .pg-slot:hover { background: #F5F1EC; }
+  .pg-slot.drag-over { background: #E8F5E9; outline: 2px dashed var(--green); outline-offset: -2px; }
+  .pg-slot-empty {
+    width: 100%;
+    height: 100%;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px dashed var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 11px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .pg-slot:hover .pg-slot-empty { opacity: 1; }
+  .pg-recipe-chip {
+    background: var(--green);
+    color: white;
+    border-radius: 6px;
+    padding: 5px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.3;
+    display: flex;
+    align-items: flex-start;
+    gap: 5px;
+    margin-bottom: 3px;
+    cursor: grab;
+    position: relative;
+  }
+  .pg-recipe-chip.chip-breakfast { background: #8B5E3C; }
+  .pg-recipe-chip.chip-kids { background: #5B7FA6; }
+  .pg-recipe-chip.chip-baking { background: #7B5E9E; }
+  .pg-recipe-chip .chip-name { flex: 1; }
+  .pg-recipe-chip .chip-remove {
+    background: none; border: none; color: rgba(255,255,255,0.7);
+    cursor: pointer; font-size: 13px; line-height: 1; padding: 0 0 0 2px;
+    flex-shrink: 0; margin-top: -1px;
+  }
+  .pg-recipe-chip .chip-remove:hover { color: white; }
+
+  /* Week selector */
+  .week-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .week-nav-btn {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    width: 30px; height: 30px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text);
+    transition: border-color 0.15s;
+  }
+  .week-nav-btn:hover { border-color: var(--green); }
+  .week-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    min-width: 160px;
+    text-align: center;
+  }
+
+  /* Add to plan modal */
+  .atp-modal {
+    max-width: 520px;
+    padding: 0;
+    overflow: hidden;
+  }
+  .atp-modal .modal-header { padding: 20px 24px; }
+  .atp-modal-body { padding: 16px 24px 24px; }
+  .atp-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .atp-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+  .atp-field select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    background: white;
+    color: var(--text);
+    outline: none;
+    cursor: pointer;
+  }
+  .atp-field select:focus { border-color: var(--green); }
+  .atp-confirm-btn {
+    width: 100%;
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .atp-confirm-btn:hover { background: var(--green-lt); }
+
+  /* Add-to-plan button on recipe card */
+  .add-plan-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 9px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s;
+    margin-top: 8px;
+  }
+  .add-plan-btn:hover { border-color: var(--green); color: var(--green); background: #F0F7F4; }
+
+  /* Planner shopping note */
+  .planner-shop-bar {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .planner-shop-bar p { font-size: 13px; color: var(--muted); }
+  .planner-shop-bar strong { color: var(--text); }
+
+
+  /* ATP mode tabs */
+  .atp-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+    gap: 0;
+  }
+  .atp-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 10px 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: -1px;
+  }
+  .atp-tab:hover { color: var(--text); }
+  .atp-tab.active { color: var(--green); border-bottom-color: var(--green); }
+  .atp-custom-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .atp-custom-input:focus { border-color: var(--green); }
+  .atp-custom-input::placeholder { color: var(--muted); }
+  .pg-recipe-chip.chip-custom { background: #7A7060; }
+  .pg-slot-add-btn {
+    background: none;
+    border: 1.5px dashed var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 5px 8px;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    transition: all 0.15s;
+    margin-top: 3px;
+  }
+  .pg-slot-add-btn:hover { border-color: var(--green); color: var(--green); background: #F0F7F4; }
+
+  /* Planner recipe preview */
+  #plannerPreview .preview-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  #plannerPreview .preview-header {
+    background: var(--green);
+    color: white;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  #plannerPreview .preview-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0;
+  }
+  #plannerPreview .preview-meta {
+    font-size: 12px;
+    opacity: 0.75;
+    margin-top: 3px;
+  }
+  #plannerPreview .preview-close {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: white;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  #plannerPreview .preview-close:hover { background: rgba(255,255,255,0.28); }
+  #plannerPreview .preview-body {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  #plannerPreview .preview-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  #plannerPreview .preview-ingredients {
+    list-style: none;
+    padding: 0; margin: 0;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  #plannerPreview .preview-ingredients li::before {
+    content: '·';
+    color: var(--terra);
+    margin-right: 6px;
+    font-weight: 700;
+  }
+  #plannerPreview .preview-method {
+    list-style: none;
+    padding: 0; margin: 0;
+    font-size: 13px;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  #plannerPreview .preview-method li {
+    display: flex;
+    gap: 10px;
+  }
+  #plannerPreview .preview-step-num {
+    background: var(--green);
+    color: white;
+    border-radius: 50%;
+    width: 20px; height: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  #plannerPreview .preview-note {
+    background: #FEF9F0;
+    border-left: 3px solid var(--terra);
+    border-radius: 0 6px 6px 0;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--text);
+    margin: 0 20px 16px;
+  }
+  @media (max-width: 700px) {
+    #plannerPreview .preview-body { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 700px) {
+    .planner-grid { grid-template-columns: 72px repeat(7, 1fr); }
+    .pg-day-header .day-date { font-size: 12px; }
+    .pg-recipe-chip { font-size: 10px; padding: 4px 6px; }
+    .pg-meal-label { font-size: 10px; padding: 8px 6px; }
+  }
+
   /* ── STICKY CONTROLS ── */
   .controls {
     position: sticky;
@@ -803,6 +1235,14 @@
   <span class="recipe-count-badge" id="totalCount">55 recipes</span>
 </header>
 
+<!-- Tab Navigation -->
+<div class="tab-nav">
+  <button class="tab-btn active" id="tabRecipes" onclick="switchTab('recipes')">📖 Recipes</button>
+  <button class="tab-btn" id="tabPlanner" onclick="switchTab('planner')">📅 Meal Planner</button>
+</div>
+
+<div id="recipesView">
+
 <div class="profile-bar">
   <span class="profile-label">Starring as:</span>
   <div class="profile-btns">
@@ -824,7 +1264,6 @@
       <button class="pill active" data-cat="all">All</button>
       <button class="pill" data-cat="Mains">Mains</button>
       <button class="pill" data-cat="Breakfast">Breakfast</button>
-      <button class="pill" data-cat="Kids">Kids</button>
       <button class="pill" data-cat="Bread">Bread & Sides</button>
       <button class="pill" data-cat="Baking">Baking & Desserts</button>
     </div>
@@ -858,6 +1297,81 @@
   <p class="results-label" id="resultsLabel">Showing <strong id="visibleCount">55</strong> recipes</p>
   <div class="grid" id="recipeGrid"></div>
 </main>
+
+</div><!-- /recipesView -->
+
+<!-- ── MEAL PLANNER VIEW ── -->
+<div id="plannerView">
+  <div class="planner-wrap">
+    <div class="planner-header-row">
+      <div>
+        <div class="planner-title">Meal Planner</div>
+        <div class="planner-subtitle">Plan your dinners two weeks at a time — add recipes from the Recipes tab</div>
+      </div>
+      <div class="planner-actions">
+        <div class="week-nav">
+          <button class="week-nav-btn" onclick="shiftWeek(-1)" title="Previous week">‹</button>
+          <div class="week-label" id="weekLabel">Week 1</div>
+          <button class="week-nav-btn" onclick="shiftWeek(1)" title="Next week">›</button>
+        </div>
+        <button class="btn btn-ghost" onclick="clearWeek()" style="font-size:13px;">Clear week</button>
+        <button class="btn btn-primary" onclick="plannerToShoppingList()" style="font-size:13px;">🛒 Shopping list</button>
+      </div>
+    </div>
+
+    <div class="planner-grid" id="plannerGrid"></div>
+
+    <!-- Recipe preview panel -->
+    <div id="plannerPreview" style="display:none; margin-top:24px;"></div>
+  </div>
+</div>
+
+<!-- Add-to-Plan Modal -->
+<div class="modal-overlay" id="atpOverlay" onclick="if(event.target===this) closeAtp()">
+  <div class="modal atp-modal">
+    <div class="modal-header">
+      <div>
+        <h2>Add to Meal Plan</h2>
+      </div>
+      <button class="modal-close" onclick="closeAtp()">✕</button>
+    </div>
+    <div class="atp-modal-body">
+      <div class="atp-tabs">
+        <button class="atp-tab active" id="atpTabRecipe" onclick="setAtpMode('recipe')">📖 From recipes</button>
+        <button class="atp-tab" id="atpTabCustom" onclick="setAtpMode('custom')">✏️ Custom / write-in</button>
+      </div>
+      <div id="atpRecipeSection">
+        <p id="atpRecipeName" style="color:var(--text);font-size:14px;font-weight:500;margin-bottom:16px;min-height:20px;"></p>
+      </div>
+      <div id="atpCustomSection" style="display:none;">
+        <input class="atp-custom-input" id="atpCustomText" type="text" placeholder="e.g. Takeaway, Eating out, Away, BBQ…" maxlength="60">
+      </div>
+      <div class="atp-row">
+        <div class="atp-field">
+          <label>Week</label>
+          <select id="atpWeek">
+            <option value="0">Week 1</option>
+            <option value="1">Week 2</option>
+          </select>
+        </div>
+        <div class="atp-field">
+          <label>Day</label>
+          <select id="atpDay">
+            <option value="0">Monday</option>
+            <option value="1">Tuesday</option>
+            <option value="2">Wednesday</option>
+            <option value="3">Thursday</option>
+            <option value="4">Friday</option>
+            <option value="5">Saturday</option>
+            <option value="6">Sunday</option>
+          </select>
+        </div>
+      </div>
+      <input type="hidden" id="atpMeal" value="Dinner">
+      <button class="atp-confirm-btn" onclick="confirmAddToPlan()">Add to Plan</button>
+    </div>
+  </div>
+</div>
 
 <!-- Shopping Tray -->
 <div class="shopping-tray" id="shoppingTray">
@@ -1913,7 +2427,7 @@ const RECIPES = [
     ]
   },
   {
-    id: 71, name: "Marry Me Sundried Tomato Orzo", cat: "Kids", stamp: "Kids", isVeg: true, isBatch: true, isKid: true,
+    id: 71, name: "Marry Me Sundried Tomato Orzo", cat: "Mains", stamp: "Vegetarian", isVeg: true, isBatch: true, isKid: true,
     serves: "3", time: "35 mins", source: "Home",
     ingredients: [
       "280g sundried tomatoes",
@@ -2328,7 +2842,7 @@ const RECIPES = [
     ]
   },
   {
-    id: 42, name: "Courgette Puff Pinwheels", cat: "Kids", stamp: "Kids", isVeg: true, isBatch: true, isKid: true,
+    id: 42, name: "Courgette Puff Pinwheels", cat: "Baking", stamp: "Baking", isVeg: true, isBatch: true, isKid: true,
     serves: "12 pinwheels", time: "20 mins", source: "What Mummy Makes",
     note: "Egg-free option: skip the egg wash. Squeezing the courgette dry is essential or the pinwheels turn soggy.",
     ingredients: [
@@ -2356,7 +2870,7 @@ const RECIPES = [
     ]
   },
   {
-    id: 43, name: "Courgette Fritters", cat: "Kids", stamp: "Kids", isVeg: true, isBatch: true, isKid: true,
+    id: 43, name: "Courgette Fritters", cat: "Baking", stamp: "Baking", isVeg: true, isBatch: true, isKid: true,
     serves: "Makes a tray (cut into squares)", time: "20–25 mins", source: "What Mummy Makes",
     note: "Egg-free option: replace the 2 eggs with 2 tbsp ground flaxseed mixed with 75ml water. Dairy-free: use nutritional yeast instead of Cheddar.",
     ingredients: [
@@ -2377,7 +2891,7 @@ const RECIPES = [
     ]
   },
   {
-    id: 68, name: "Carrot and Raisin Muffins", cat: "Kids", stamp: "Kids", isVeg: true, isBatch: true, isKid: true,
+    id: 68, name: "Carrot and Raisin Muffins", cat: "Baking", stamp: "Baking", isVeg: true, isBatch: true, isKid: true,
     serves: "12 muffins", time: "25 mins", source: "What Mummy Makes",
     note: "Family adaptation: use 230g carrot + 150g apple (both grated) instead of all carrot, plus a splash of milk and 1 tsp vanilla.",
     ingredients: [
@@ -2403,7 +2917,7 @@ const RECIPES = [
   },
   // ── SNACKS & KIDS' BAKING ───────────────────────────────────────────────
   {
-    id: 44, name: "Blueberry & Banana Porridge Bars", cat: "Kids", stamp: "Kids", isVeg: true, isBatch: true, isKid: true,
+    id: 44, name: "Blueberry & Banana Porridge Bars", cat: "Baking", stamp: "Baking", isVeg: true, isBatch: true, isKid: true,
     serves: "12–16 bars", time: "35 mins", source: "What Mummy Makes",
     note: "Tips: double up the quantities. Can use frozen blueberries — swap for raspberries if preferred. Serve with yoghurt.",
     ingredients: [
@@ -2424,7 +2938,7 @@ const RECIPES = [
     ]
   },
   {
-    id: 47, name: "Easy On-the-Go Brekkie Bars", cat: "Kids", stamp: "Kids", isVeg: true, isBatch: true, isKid: true,
+    id: 47, name: "Easy On-the-Go Brekkie Bars", cat: "Baking", stamp: "Baking", isVeg: true, isBatch: true, isKid: true,
     serves: "12 bars", time: "20 mins", source: "The Ultimate Weaning and Toddler Cookbook",
     note: "Swap dates for other dried fruits if preferred. Keeps in the fridge for 2 days with baking paper between layers, or freeze for 3 months — defrost overnight in fridge.",
     ingredients: [
@@ -2445,7 +2959,7 @@ const RECIPES = [
     ]
   },
   {
-    id: 74, name: "Mac and Cheese with Kale and Cauliflower", cat: "Kids", stamp: "Kids", isVeg: true, isBatch: true, isKid: true,
+    id: 74, name: "Mac and Cheese with Kale and Cauliflower", cat: "Mains", stamp: "Vegetarian", isVeg: true, isBatch: true, isKid: true,
     serves: "2 babies + 1 adult", time: "35 mins", source: "The Ultimate Weaning and Toddler Cookbook",
     note: "Family quantities (handwritten adjustments): 225g pasta, 150g cauliflower, 30g butter, 30g flour, 400ml milk, ½ tsp garlic granules, ½ tsp nutritional yeast, 90g cheddar. Can vary veg — mushrooms, sweetcorn and spinach all work. Add a little extra milk to loosen if blending for baby.",
     ingredients: [
@@ -2471,7 +2985,7 @@ const RECIPES = [
     ]
   },
   {
-    id: 75, name: "Cheat's Beef Ragu", cat: "Kids", stamp: "Kids", isBatch: true, isKid: true,
+    id: 75, name: "Cheat's Beef Ragu", cat: "Mains", stamp: "Mains", isBatch: true, isKid: true,
     serves: "2 adults + 2 littles", time: "25 mins", source: "The Ultimate Weaning and Toddler Cookbook",
     note: "Suitable from 6 months. Egg- and dairy-free (can add grated cheese on top). Can simmer on the hob for up to 2 hours, or pop in a slow cooker all day. Freeze for up to 3 months.",
     ingredients: [
@@ -3194,6 +3708,7 @@ function renderCard(r) {
             <p class="section-label">Method</p>
             <ul class="method-list">${methodHtml}</ul>
           ` : '<p class="section-label" style="color:var(--muted);font-size:12px;font-style:italic">Method not yet saved</p>'}
+          <button class="add-plan-btn" onclick="event.stopPropagation(); openAtp(${r.id})">📅 Add to meal plan</button>
         </div>
       </div>
     </div>`;
@@ -3796,6 +4311,303 @@ function initProfileButtons() {
   document.getElementById('profileNone').className = 'profile-btn' + (!activeProfile ? ' active-none' : '');
   document.getElementById('profileAaron').className = 'profile-btn' + (activeProfile === 'aaron' ? ' active-aaron' : '');
   document.getElementById('profileKatie').className = 'profile-btn' + (activeProfile === 'katie' ? ' active-katie' : '');
+}
+
+// ── TAB SWITCHING ──────────────────────────────────────────────────────────
+function switchTab(tab) {
+  const isPlanner = tab === 'planner';
+  document.getElementById('recipesView').style.display = isPlanner ? 'none' : 'block';
+  document.getElementById('plannerView').style.display = isPlanner ? 'block' : 'none';
+  document.getElementById('tabRecipes').classList.toggle('active', !isPlanner);
+  document.getElementById('tabPlanner').classList.toggle('active', isPlanner);
+  if (isPlanner) renderPlanner();
+}
+
+// ── MEAL PLANNER ───────────────────────────────────────────────────────────
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const DAY_FULL = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const MEALS = ['Dinner'];
+const MEAL_COLORS = { Breakfast: 'chip-breakfast', Lunch: '', Dinner: '', Kids: 'chip-kids', Baking: 'chip-baking' };
+
+// planData[week][day][meal] = [{id, name}]
+let planData = loadPlan();
+let currentWeek = 0; // 0 or 1
+let atpRecipeId = null;
+
+function loadPlan() {
+  try {
+    const saved = localStorage.getItem('mealPlan_v1');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return [
+    Array.from({length:7}, () => ({Breakfast:[], Lunch:[], Dinner:[]})),
+    Array.from({length:7}, () => ({Breakfast:[], Lunch:[], Dinner:[]}))
+  ];
+}
+
+function savePlan() {
+  try { localStorage.setItem('mealPlan_v1', JSON.stringify(planData)); } catch(e) {}
+}
+
+function getWeekStartDate(weekOffset) {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1) + weekOffset * 7);
+  return monday;
+}
+
+function formatWeekLabel(weekOffset) {
+  const start = getWeekStartDate(weekOffset);
+  const end = new Date(start); end.setDate(start.getDate() + 6);
+  const opts = { day: 'numeric', month: 'short' };
+  return `${start.toLocaleDateString('en-GB', opts)} – ${end.toLocaleDateString('en-GB', opts)}`;
+}
+
+function getDayDates(weekOffset) {
+  const start = getWeekStartDate(weekOffset);
+  return Array.from({length:7}, (_, i) => {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    return d.getDate();
+  });
+}
+
+function renderPlanner() {
+  document.getElementById('weekLabel').textContent = formatWeekLabel(currentWeek);
+  const dates = getDayDates(currentWeek);
+  const grid = document.getElementById('plannerGrid');
+  let html = '';
+
+  // Top-left corner
+  html += `<div class="pg-cell pg-day-header" style="background:rgba(44,74,62,0.85);">
+    <span class="day-name">Week</span>
+    <span class="day-date">${currentWeek + 1}</span>
+  </div>`;
+
+  // Day headers
+  DAYS.forEach((d, i) => {
+    html += `<div class="pg-cell pg-day-header">
+      <span class="day-name">${d}</span>
+      <span class="day-date">${dates[i]}</span>
+    </div>`;
+  });
+
+  // Meal rows
+  MEALS.forEach(meal => {
+    // Meal label
+    html += `<div class="pg-cell pg-meal-label">${meal}</div>`;
+    // Day slots
+    for (let d = 0; d < 7; d++) {
+      const entries = planData[currentWeek][d][meal] || [];
+      const chipsHtml = entries.map((e, ei) => {
+        const rec = RECIPES.find(r => r.id === e.id);
+        const colorClass = e.custom ? 'chip-custom' : (rec ? (MEAL_COLORS[rec.cat] || '') : '');
+        const clickHandler = (!e.custom && e.id) ? `onclick="event.stopPropagation(); showPlannerRecipe(${e.id})"` : '';
+        return `<div class="pg-recipe-chip ${colorClass}" draggable="true" ${clickHandler}
+          ondragstart="dragStart(event, ${currentWeek}, ${d}, '${meal}', ${ei})"
+          ondragend="dragEnd(event)" style="${(!e.custom && e.id) ? 'cursor:pointer;' : ''}">
+          <span class="chip-name">${e.name}</span>
+          <button class="chip-remove" onclick="event.stopPropagation(); removePlanEntry(${currentWeek}, ${d}, '${meal}', ${ei})" title="Remove">×</button>
+        </div>`;
+      }).join('');
+      html += `<div class="pg-cell pg-slot"
+        ondragover="dragOver(event)"
+        ondragleave="dragLeave(event)"
+        ondrop="dropEntry(event, ${currentWeek}, ${d}, '${meal}')">
+        ${chipsHtml}
+        <button class="pg-slot-add-btn" onclick="openAtpForSlot(${currentWeek}, ${d})">+ Add dinner</button>
+      </div>`;
+    }
+  });
+
+  grid.innerHTML = html;
+}
+
+function shiftWeek(dir) {
+  currentWeek = Math.max(0, Math.min(1, currentWeek + dir));
+  renderPlanner();
+}
+
+function clearWeek() {
+  if (!confirm(`Clear all meals for Week ${currentWeek + 1}?`)) return;
+  planData[currentWeek] = Array.from({length:7}, () => ({Breakfast:[], Lunch:[], Dinner:[]}));
+  savePlan();
+  renderPlanner();
+}
+
+function removePlanEntry(week, day, meal, idx) {
+  planData[week][day][meal].splice(idx, 1);
+  savePlan();
+  renderPlanner();
+}
+
+// Drag & drop
+let dragSrc = null;
+function dragStart(e, week, day, meal, idx) {
+  dragSrc = { week, day, meal, idx };
+  e.dataTransfer.effectAllowed = 'move';
+}
+function dragEnd(e) { dragSrc = null; document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over')); }
+function dragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function dragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+function dropEntry(e, week, day, meal) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (!dragSrc) return;
+  const entry = planData[dragSrc.week][dragSrc.day][dragSrc.meal].splice(dragSrc.idx, 1)[0];
+  if (!planData[week][day][meal]) planData[week][day][meal] = [];
+  planData[week][day][meal].push(entry);
+  savePlan();
+  renderPlanner();
+}
+
+// ── ADD TO PLAN MODAL ─────────────────────────────────────────────────────
+
+let atpMode = 'recipe'; // 'recipe' or 'custom'
+
+function setAtpMode(mode) {
+  atpMode = mode;
+  document.getElementById('atpTabRecipe').classList.toggle('active', mode === 'recipe');
+  document.getElementById('atpTabCustom').classList.toggle('active', mode === 'custom');
+  document.getElementById('atpRecipeSection').style.display = mode === 'recipe' ? 'block' : 'none';
+  document.getElementById('atpCustomSection').style.display = mode === 'custom' ? 'block' : 'none';
+  document.querySelector('.atp-confirm-btn').textContent = mode === 'custom' ? 'Add to Plan' : 'Add to Plan';
+}
+
+function openAtpForSlot(week, day) {
+  atpRecipeId = null;
+  atpMode = 'custom';
+  setAtpMode('custom');
+  document.getElementById('atpWeek').value = week;
+  document.getElementById('atpDay').value = day;
+  document.getElementById('atpCustomText').value = '';
+  document.getElementById('atpCustomText').focus();
+  document.getElementById('atpOverlay').style.display = 'flex';
+}
+
+function openAtp(recipeId) {
+  atpRecipeId = recipeId;
+  atpMode = 'recipe';
+  setAtpMode('recipe');
+  const rec = RECIPES.find(r => r.id === recipeId);
+  document.getElementById('atpRecipeName').textContent = rec ? rec.name : '';
+  document.getElementById('atpWeek').value = currentWeek;
+  document.getElementById('atpOverlay').style.display = 'flex';
+}
+
+
+
+function closeAtp() {
+  document.getElementById('atpOverlay').style.display = 'none';
+  atpRecipeId = null;
+}
+
+function confirmAddToPlan() {
+  const week = parseInt(document.getElementById('atpWeek').value);
+  const day  = parseInt(document.getElementById('atpDay').value);
+  const meal = document.getElementById('atpMeal').value;
+  if (!planData[week][day][meal]) planData[week][day][meal] = [];
+
+  if (atpMode === 'custom') {
+    const text = document.getElementById('atpCustomText').value.trim();
+    if (!text) { document.getElementById('atpCustomText').focus(); return; }
+    planData[week][day][meal].push({ id: null, name: text, custom: true });
+    savePlan();
+    closeAtp();
+    renderPlanner();
+    showToast(`"${text}" added to Week ${week+1} ${DAY_FULL[day]}!`);
+  } else {
+    if (!atpRecipeId) return;
+    const rec = RECIPES.find(r => r.id === atpRecipeId);
+    if (!rec) return;
+    planData[week][day][meal].push({ id: rec.id, name: rec.name });
+    savePlan();
+    closeAtp();
+    renderPlanner();
+    showToast(`${rec.name} added to Week ${week+1} ${DAY_FULL[day]}!`);
+  }
+}
+
+// Toast notification
+function showToast(msg) {
+  let t = document.getElementById('plannerToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'plannerToast';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:white;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,0.2);transition:opacity 0.3s;pointer-events:none;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 3000);
+}
+
+// ── PLANNER → SHOPPING LIST ───────────────────────────────────────────────
+function plannerToShoppingList() {
+  // Gather all recipe IDs in current week
+  const ids = new Set();
+  planData[currentWeek].forEach(day => {
+    MEALS.forEach(meal => {
+      (day[meal] || []).forEach(e => ids.add(e.id));
+    });
+  });
+  if (!ids.size) { alert('No recipes in this week\'s plan yet!'); return; }
+  // Set selectedRecipes and open shopping list
+  window.selectedRecipes = ids;
+  openShoppingList();
+}
+
+
+// ── PLANNER RECIPE PREVIEW ────────────────────────────────────────────────
+function showPlannerRecipe(recipeId) {
+  const r = RECIPES.find(x => x.id === recipeId);
+  if (!r) return;
+  const panel = document.getElementById('plannerPreview');
+
+  const metaParts = [
+    r.serves ? `🍽 ${r.serves}` : '',
+    r.time   ? `⏱ ${r.time}` : '',
+    r.source ? `📖 ${r.source}` : '',
+  ].filter(Boolean).join('  ·  ');
+
+  const noteHtml = r.note
+    ? `<div class="preview-note">${r.note.startsWith('⚠️') ? r.note : '💡 ' + r.note}</div>`
+    : '';
+
+  const ingHtml = (r.ingredients || []).map(i => `<li>${i}</li>`).join('');
+  const methodHtml = (r.method || []).map((s, i) =>
+    `<li><span class="preview-step-num">${i+1}</span><span>${s}</span></li>`
+  ).join('');
+
+  panel.style.display = 'block';
+  panel.innerHTML = `<div class="preview-card">
+    <div class="preview-header">
+      <div>
+        <h3>${r.name}</h3>
+        ${metaParts ? `<div class="preview-meta">${metaParts}</div>` : ''}
+      </div>
+      <button class="preview-close" onclick="closePlannerPreview()">✕</button>
+    </div>
+    ${noteHtml}
+    <div class="preview-body">
+      <div>
+        <p class="preview-section-label">Ingredients</p>
+        <ul class="preview-ingredients">${ingHtml}</ul>
+      </div>
+      ${methodHtml ? `<div>
+        <p class="preview-section-label">Method</p>
+        <ul class="preview-method">${methodHtml}</ul>
+      </div>` : ''}
+    </div>
+  </div>`;
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function closePlannerPreview() {
+  const panel = document.getElementById('plannerPreview');
+  panel.style.display = 'none';
+  panel.innerHTML = '';
 }
 
 // Initial render
