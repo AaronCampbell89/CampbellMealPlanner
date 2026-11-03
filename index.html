@@ -4516,7 +4516,7 @@ function setAtpMode(mode) {
   document.getElementById('atpTabCustom').classList.toggle('active', mode === 'custom');
   document.getElementById('atpRecipeSection').style.display = mode === 'recipe' ? 'block' : 'none';
   document.getElementById('atpCustomSection').style.display = mode === 'custom' ? 'block' : 'none';
-  document.querySelector('.atp-confirm-btn').textContent = mode === 'custom' ? 'Add to Plan' : 'Add to Plan';
+  document.querySelector('#atpOverlay .atp-confirm-btn').textContent = mode === 'custom' ? 'Add to Plan' : 'Add to Plan';
 }
 
 function openAtpForSlot(week, day) {
@@ -4859,6 +4859,26 @@ if (db) {
   let savedKey = null;
   try { savedKey = localStorage.getItem(KEY_STORE); } catch (e) {}
   if (savedKey) start(savedKey, false);
+
+  // Phones pause the page (and its live connection) when you switch apps or lock the screen.
+  // When the app comes back, reconnect straight away instead of waiting for Firebase's retry timer.
+  let resuming = false;
+  async function resume() {
+    if (!ref || resuming || document.visibilityState !== 'visible') return;
+    resuming = true;
+    try {
+      await fs.disableNetwork(db);
+      await fs.enableNetwork(db);
+    } catch (e) {
+      console.warn('Reconnect failed:', e);
+    } finally {
+      resuming = false;
+    }
+  }
+  document.addEventListener('visibilitychange', resume);
+  window.addEventListener('pageshow', e => { if (e.persisted) resume(); });
+  window.addEventListener('online', resume);
+  window.addEventListener('focus', resume);
 }
 </script>
 </body>
