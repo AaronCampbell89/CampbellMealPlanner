@@ -1224,6 +1224,26 @@
   .star-btn.starred { opacity: 1; }
   .star-btn.starred-aaron { color: #7B2D8B; }
   .star-btn.starred-katie { color: #C2185B; }
+
+  /* ── SHARED SYNC ── */
+  .sync-chip {
+    display: inline-block;
+    margin: 14px 0 0 8px;
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.85);
+    border: 1px solid rgba(255,255,255,0.2);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 3px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+  .sync-chip:hover { background: rgba(255,255,255,0.2); }
+  .sync-chip.ok { color: #A8D5B5; border-color: rgba(168,213,181,0.5); }
+  .sync-chip.warn { color: #FFD08A; border-color: rgba(255,208,138,0.5); }
+  .sync-help { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+  .sync-error { font-size: 13px; color: var(--terra); margin-top: 10px; min-height: 18px; }
 </style>
 </head>
 <body>
@@ -1233,7 +1253,30 @@
   <h1>Campbell <em>Meal</em> Planner</h1>
   <p class="subtitle">Everything in one place — from weeknight dinners to weekend baking</p>
   <span class="recipe-count-badge" id="totalCount">55 recipes</span>
+  <button class="sync-chip" id="syncChip" onclick="openSyncModal()">☁ Set up sharing</button>
 </header>
+
+<!-- Shared Sync Modal -->
+<div class="modal-overlay" id="syncOverlay" onclick="if(event.target===this) closeSyncModal()">
+  <div class="modal atp-modal" style="max-width:440px">
+    <div class="modal-header">
+      <div><h2 id="syncTitle">Share with family</h2></div>
+      <button class="modal-close" onclick="closeSyncModal()">✕</button>
+    </div>
+    <div class="atp-modal-body">
+      <div id="syncSetup">
+        <p class="sync-help">Enter the household passcode on each phone to share one meal plan and both sets of favourites. Use the same passcode on every device, and pick something hard to guess, e.g. three random words.</p>
+        <input class="atp-custom-input" id="syncPass" type="password" placeholder="Household passcode" autocomplete="off">
+        <div class="sync-error" id="syncError"></div>
+        <button class="atp-confirm-btn" id="syncConnectBtn" onclick="window.cloudSync && window.cloudSync.connect(document.getElementById('syncPass').value)">Connect</button>
+      </div>
+      <div id="syncConnected" style="display:none">
+        <p class="sync-help">This device is sharing the meal plan and favourites. Changes appear on the other phones automatically.</p>
+        <button class="atp-confirm-btn" style="background:var(--terra)" onclick="window.cloudSync && window.cloudSync.disconnect()">Stop sharing on this device</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Tab Navigation -->
 <div class="tab-nav">
@@ -4247,6 +4290,7 @@ function toggleFav(id) {
   const favSet = activeProfile === 'aaron' ? aaronFavs : katieFavs;
   if (favSet.has(id)) { favSet.delete(id); } else { favSet.add(id); }
   saveFavs(activeProfile, favSet);
+  if (window.cloudSync) window.cloudSync.favToggled(activeProfile, id, favSet.has(id));
 
   // Update just this card's star without full re-render
   const starEl = document.getElementById('star-' + id);
@@ -4347,6 +4391,7 @@ function loadPlan() {
 
 function savePlan() {
   try { localStorage.setItem('mealPlan_v1', JSON.stringify(planData)); } catch(e) {}
+  if (window.cloudSync) window.cloudSync.planChanged();
 }
 
 function getWeekStartDate(weekOffset) {
@@ -4613,6 +4658,208 @@ function closePlannerPreview() {
 // Initial render
 renderAll(RECIPES);
 initProfileButtons();
+
+// ── SHARED SYNC HOOKS (called by the Firebase module below) ─────────────────
+function applyRemoteFavs(aaronIds, katieIds) {
+  aaronFavs = new Set(aaronIds);
+  katieFavs = new Set(katieIds);
+  saveFavs('aaron', aaronFavs);
+  saveFavs('katie', katieFavs);
+  RECIPES.forEach(r => {
+    const starEl = document.getElementById('star-' + r.id);
+    if (starEl) starEl.className = 'star-btn ' + getStarClass(r.id);
+    const cardEl = document.querySelector(`.card[data-id="${r.id}"]`);
+    if (cardEl) updateCardBadges(cardEl, r.id);
+  });
+  filter();
+}
+
+function applyRemotePlan(plan) {
+  planData = plan;
+  try { localStorage.setItem('mealPlan_v1', JSON.stringify(planData)); } catch(e) {}
+  if (document.getElementById('plannerView').style.display === 'block') renderPlanner();
+}
+
+function setSyncStatus(text, cls) {
+  const chip = document.getElementById('syncChip');
+  chip.textContent = text;
+  chip.className = 'sync-chip' + (cls ? ' ' + cls : '');
+}
+
+function openSyncModal() {
+  const connected = !!(window.cloudSync && window.cloudSync.isConnected());
+  document.getElementById('syncSetup').style.display = connected ? 'none' : 'block';
+  document.getElementById('syncConnected').style.display = connected ? 'block' : 'none';
+  document.getElementById('syncError').textContent = window.cloudSync ? '' : 'Sharing could not load. Check your internet connection and refresh.';
+  document.getElementById('syncOverlay').classList.add('visible');
+  if (!connected) setTimeout(() => document.getElementById('syncPass').focus(), 50);
+}
+
+function closeSyncModal() {
+  document.getElementById('syncOverlay').classList.remove('visible');
+  document.getElementById('syncPass').value = '';
+}
+</script>
+
+<!-- ── SHARED SYNC (Firebase Firestore) ─────────────────────────────────── -->
+<script type="module">
+const FB = 'https://www.gstatic.com/firebasejs/13.2.0/';
+const firebaseConfig = {
+  apiKey: "AIzaSyAkGRbBpeOes3Ur3tJyG1pVrSZ_WAJfI08",
+  authDomain: "campbell-meal-planner.firebaseapp.com",
+  projectId: "campbell-meal-planner",
+  storageBucket: "campbell-meal-planner.firebasestorage.app",
+  messagingSenderId: "186890535476",
+  appId: "1:186890535476:web:ae7af6d6d340a6cfb34061"
+};
+const KEY_STORE = 'householdKey_v1';
+
+let fs, db, ref = null, unsub = null, lastPlanJson = {}, firstSnapshot = true, mergeLocal = false;
+
+try {
+  const { initializeApp } = await import(FB + 'firebase-app.js');
+  fs = await import(FB + 'firebase-firestore.js');
+  const app = initializeApp(firebaseConfig);
+  try {
+    db = fs.initializeFirestore(app, {
+      ignoreUndefinedProperties: true,
+      localCache: fs.persistentLocalCache({ tabManager: fs.persistentMultipleTabManager() })
+    });
+  } catch (e) {
+    db = fs.getFirestore(app);
+  }
+} catch (e) {
+  console.warn('Shared sync unavailable:', e);
+  setSyncStatus('☁ Sharing unavailable', 'warn');
+}
+
+// Stable JSON so the same data always compares equal regardless of key order
+function canon(v) {
+  if (Array.isArray(v)) return '[' + v.map(canon).join(',') + ']';
+  if (v && typeof v === 'object') return '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + canon(v[k])).join(',') + '}';
+  return JSON.stringify(v === undefined ? null : v);
+}
+
+// planData is [week][day] → stored in Firestore as plan.w{week}d{day}
+function planToMap(plan) {
+  const m = {};
+  plan.forEach((week, w) => week.forEach((day, d) => { m[`w${w}d${d}`] = JSON.parse(JSON.stringify(day)); }));
+  return m;
+}
+function mapToPlan(m) {
+  return [0, 1].map(w => Array.from({ length: 7 }, (_, d) =>
+    m[`w${w}d${d}`] || { Breakfast: [], Lunch: [], Dinner: [] }));
+}
+function planIsEmpty(plan) {
+  return plan.every(week => week.every(day => Object.values(day).every(list => !list || list.length === 0)));
+}
+
+async function hashPass(pass) {
+  const data = new TextEncoder().encode('campbell-meal-planner:' + pass.trim().toLowerCase());
+  const buf = await crypto.subtle.digest('SHA-256', data);
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function onSnap(snap) {
+  if (!snap.exists()) {
+    if (snap.metadata.fromCache) return; // wait for the server before creating
+    const plan = planToMap(planData);
+    lastPlanJson = Object.fromEntries(Object.entries(plan).map(([k, v]) => [k, canon(v)]));
+    fs.setDoc(ref, { plan, favs_aaron: [...aaronFavs], favs_katie: [...katieFavs], updatedAt: fs.serverTimestamp() })
+      .catch(syncError);
+    return;
+  }
+  const data = snap.data();
+
+  if (firstSnapshot && mergeLocal && snap.metadata.fromCache) return; // don't overwrite local data before merging
+  if (firstSnapshot && mergeLocal) {
+    // First time this device joins: add its favourites, and its plan if the shared one is empty
+    firstSnapshot = false;
+    const updates = { updatedAt: fs.serverTimestamp() };
+    if (aaronFavs.size) updates.favs_aaron = fs.arrayUnion(...aaronFavs);
+    if (katieFavs.size) updates.favs_katie = fs.arrayUnion(...katieFavs);
+    const remotePlan = mapToPlan(data.plan || {});
+    if (planIsEmpty(remotePlan) && !planIsEmpty(planData)) updates.plan = planToMap(planData);
+    fs.updateDoc(ref, updates).catch(syncError);
+    return; // the write triggers another snapshot with the merged data
+  }
+  if (!snap.metadata.fromCache) firstSnapshot = false;
+
+  const planMap = data.plan || {};
+  lastPlanJson = Object.fromEntries(Object.entries(planMap).map(([k, v]) => [k, canon(v)]));
+  applyRemoteFavs(data.favs_aaron || [], data.favs_katie || []);
+  applyRemotePlan(mapToPlan(planMap));
+
+  if (snap.metadata.hasPendingWrites) setSyncStatus('☁ Saving…', 'ok');
+  else if (snap.metadata.fromCache) setSyncStatus('☁ Offline – will sync', 'warn');
+  else setSyncStatus('☁ Shared · synced', 'ok');
+}
+
+function syncError(e) {
+  console.error('Sync error:', e);
+  const denied = e && e.code === 'permission-denied';
+  setSyncStatus('☁ Sync error', 'warn');
+  showToast(denied ? 'Sharing blocked: check the Firestore security rules' : 'Could not sync, will retry when online');
+}
+
+function start(key, isNewConnection) {
+  if (unsub) unsub();
+  ref = fs.doc(db, 'households', key);
+  firstSnapshot = true;
+  mergeLocal = isNewConnection;
+  setSyncStatus('☁ Connecting…', '');
+  unsub = fs.onSnapshot(ref, { includeMetadataChanges: true }, onSnap, syncError);
+}
+
+if (db) {
+  window.cloudSync = {
+    isConnected: () => !!ref,
+
+    async connect(pass) {
+      const err = document.getElementById('syncError');
+      if (!pass || pass.trim().length < 6) { err.textContent = 'Use at least 6 characters.'; return; }
+      const key = await hashPass(pass);
+      try { localStorage.setItem(KEY_STORE, key); } catch (e) {}
+      start(key, true);
+      closeSyncModal();
+      showToast('Sharing turned on');
+    },
+
+    disconnect() {
+      if (unsub) unsub();
+      unsub = null; ref = null;
+      try { localStorage.removeItem(KEY_STORE); } catch (e) {}
+      setSyncStatus('☁ Set up sharing', '');
+      closeSyncModal();
+      showToast('Sharing turned off on this device');
+    },
+
+    favToggled(person, id, added) {
+      if (!ref || (person !== 'aaron' && person !== 'katie')) return;
+      fs.updateDoc(ref, {
+        ['favs_' + person]: added ? fs.arrayUnion(id) : fs.arrayRemove(id),
+        updatedAt: fs.serverTimestamp()
+      }).catch(syncError);
+    },
+
+    planChanged() {
+      if (!ref) return;
+      // Only send the days that changed, so two people editing different days don't overwrite each other
+      const updates = {};
+      Object.entries(planToMap(planData)).forEach(([k, v]) => {
+        const j = canon(v);
+        if (lastPlanJson[k] !== j) { updates['plan.' + k] = v; lastPlanJson[k] = j; }
+      });
+      if (!Object.keys(updates).length) return;
+      updates.updatedAt = fs.serverTimestamp();
+      fs.updateDoc(ref, updates).catch(syncError);
+    }
+  };
+
+  let savedKey = null;
+  try { savedKey = localStorage.getItem(KEY_STORE); } catch (e) {}
+  if (savedKey) start(savedKey, false);
+}
 </script>
 </body>
 </html>
