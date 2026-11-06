@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Campbell Meal Planner</title>
 <!-- Bump app-version with every change so home-screen copies update themselves -->
-<meta name="app-version" content="2026-11-03.1">
+<meta name="app-version" content="2026-11-06.1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Meal Planner">
@@ -505,10 +505,21 @@
     #plannerPreview .preview-body { grid-template-columns: 1fr; }
   }
   @media (max-width: 700px) {
-    .planner-grid { grid-template-columns: 72px repeat(7, 1fr); }
+    .planner-wrap { padding: 20px 10px; }
+    .planner-grid { grid-template-columns: 34px repeat(7, minmax(0, 1fr)); }
+    .pg-cell { padding: 4px 2px; min-width: 0; }
+    .pg-slot { padding: 3px 2px; min-height: 52px; }
+    .pg-day-header { padding: 6px 0; }
+    .pg-day-header .day-name { font-size: 9px; letter-spacing: 0.02em; }
+    .pg-meal-label { writing-mode: vertical-rl; transform: rotate(180deg); justify-content: center; letter-spacing: 0.08em; }
+    .pg-corner .day-name { font-size: 0; }
+    .pg-recipe-chip { padding: 4px 3px; gap: 1px; overflow-wrap: anywhere; hyphens: auto; }
+    .pg-recipe-chip .chip-remove { padding: 0; font-size: 12px; }
+    .pg-slot-add-btn { font-size: 0; padding: 4px 0; }
+    .pg-slot-add-btn::before { content: '+'; font-size: 14px; }
     .pg-day-header .day-date { font-size: 12px; }
-    .pg-recipe-chip { font-size: 10px; padding: 4px 6px; }
-    .pg-meal-label { font-size: 10px; padding: 8px 6px; }
+    .pg-recipe-chip { font-size: 9.5px; }
+    .pg-meal-label { font-size: 9px; padding: 6px 0; }
   }
 
   /* ── STICKY CONTROLS ── */
@@ -1232,6 +1243,63 @@
   .star-btn.starred-aaron { color: #7B2D8B; }
   .star-btn.starred-katie { color: #C2185B; }
 
+  /* ── TEMPLATE WEEK & DRAG ── */
+  .planner-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .planner-section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--green);
+  }
+  .planner-section-title small {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--muted);
+  }
+  .btn-outline {
+    background: white;
+    color: var(--text);
+    border: 1px solid var(--border);
+    font-size: 12px;
+    padding: 7px 12px;
+  }
+  .btn-outline:hover { border-color: var(--green); color: var(--green); }
+  .btn-template {
+    background: var(--green);
+    color: white;
+    font-size: 12px;
+    padding: 7px 12px;
+  }
+  .btn-template:hover { background: var(--green-lt); }
+  .template-grid .pg-day-header { background: var(--terra); }
+  .template-grid .pg-day-header.pg-corner { background: #A9532A; }
+  .template-grid .pg-meal-label { background: #FBEDE4; color: var(--terra); }
+  .pg-recipe-chip {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  .pg-recipe-chip.drag-source { opacity: 0.35; }
+  .drag-ghost {
+    position: fixed;
+    z-index: 10000;
+    pointer-events: none;
+    transform: translate(-50%, -60%) rotate(-3deg) scale(1.08);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    max-width: 160px;
+    opacity: 0.95;
+  }
+  body.dragging-chip, body.dragging-chip * { cursor: grabbing !important; }
+
   /* ── SHARED SYNC ── */
   .sync-chip {
     display: inline-block;
@@ -1356,19 +1424,33 @@
     <div class="planner-header-row">
       <div>
         <div class="planner-title">Meal Planner</div>
-        <div class="planner-subtitle">Plan your dinners two weeks at a time — add recipes from the Recipes tab</div>
+        <div class="planner-subtitle">Drag meals between days, or from the template into the week. On a phone, press and hold a meal to drag it.</div>
       </div>
       <div class="planner-actions">
-        <div class="week-nav">
-          <button class="week-nav-btn" onclick="shiftWeek(-1)" title="Previous week">‹</button>
-          <div class="week-label" id="weekLabel">Week 1</div>
-          <button class="week-nav-btn" onclick="shiftWeek(1)" title="Next week">›</button>
-        </div>
-        <button class="btn btn-ghost" onclick="clearWeek()" style="font-size:13px;">Clear week</button>
         <button class="btn btn-primary" onclick="plannerToShoppingList()" style="font-size:13px;">🛒 Shopping list</button>
       </div>
     </div>
 
+    <!-- Template week: a reusable rough plan shown above every week -->
+    <div class="planner-section-head">
+      <div class="planner-section-title">📋 Template week<small>Your usual week. Drag a meal down to copy it into the week below.</small></div>
+      <div class="planner-actions">
+        <button class="btn btn-template" onclick="applyTemplateToWeek()">⬇ Add template to this week</button>
+        <button class="btn btn-outline" onclick="clearTemplate()">Clear template</button>
+      </div>
+    </div>
+    <div class="planner-grid template-grid" id="templateGrid" style="margin-bottom:28px"></div>
+
+    <div class="planner-section-head">
+      <div class="week-nav">
+        <button class="week-nav-btn" onclick="shiftWeek(-1)" title="Previous week">‹</button>
+        <div class="week-label" id="weekLabel">Week 1</div>
+        <button class="week-nav-btn" onclick="shiftWeek(1)" title="Next week">›</button>
+      </div>
+      <div class="planner-actions">
+        <button class="btn btn-outline" onclick="clearWeek()">Clear week</button>
+      </div>
+    </div>
     <div class="planner-grid" id="plannerGrid"></div>
 
     <!-- Recipe preview panel -->
@@ -1400,6 +1482,7 @@
         <div class="atp-field">
           <label>Week</label>
           <select id="atpWeek">
+            <option value="-1">📋 Template</option>
             <option value="0">Week 1</option>
             <option value="1">Week 2</option>
           </select>
@@ -4396,8 +4479,29 @@ function loadPlan() {
   ];
 }
 
+// Template week: 7 days in the same shape as a planner week
+let templateData = loadTemplate();
+
+function emptyWeek() {
+  return Array.from({length:7}, () => ({Breakfast:[], Lunch:[], Dinner:[]}));
+}
+
+function loadTemplate() {
+  try {
+    const saved = localStorage.getItem('mealTemplate_v1');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return emptyWeek();
+}
+
+// week === -1 means the template week
+function weekData(week) {
+  return week === -1 ? templateData : planData[week];
+}
+
 function savePlan() {
   try { localStorage.setItem('mealPlan_v1', JSON.stringify(planData)); } catch(e) {}
+  try { localStorage.setItem('mealTemplate_v1', JSON.stringify(templateData)); } catch(e) {}
   if (window.cloudSync) window.cloudSync.planChanged();
 }
 
@@ -4424,55 +4528,89 @@ function getDayDates(weekOffset) {
   });
 }
 
-function renderPlanner() {
-  document.getElementById('weekLabel').textContent = formatWeekLabel(currentWeek);
-  const dates = getDayDates(currentWeek);
-  const grid = document.getElementById('plannerGrid');
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Builds a planner grid; week === -1 renders the template week (no dates)
+function buildPlannerGridHtml(week) {
+  const isTemplate = week === -1;
+  const data = weekData(week);
+  const dates = isTemplate ? null : getDayDates(week);
   let html = '';
 
-  // Top-left corner
-  html += `<div class="pg-cell pg-day-header" style="background:rgba(44,74,62,0.85);">
-    <span class="day-name">Week</span>
-    <span class="day-date">${currentWeek + 1}</span>
+  html += `<div class="pg-cell pg-day-header pg-corner" style="${isTemplate ? '' : 'background:rgba(44,74,62,0.85);'}">
+    <span class="day-name">${isTemplate ? 'Usual' : 'Week'}</span>
+    <span class="day-date">${isTemplate ? '📋' : week + 1}</span>
   </div>`;
 
-  // Day headers
   DAYS.forEach((d, i) => {
     html += `<div class="pg-cell pg-day-header">
       <span class="day-name">${d}</span>
-      <span class="day-date">${dates[i]}</span>
+      ${isTemplate ? '' : `<span class="day-date">${dates[i]}</span>`}
     </div>`;
   });
 
-  // Meal rows
   MEALS.forEach(meal => {
-    // Meal label
     html += `<div class="pg-cell pg-meal-label">${meal}</div>`;
-    // Day slots
     for (let d = 0; d < 7; d++) {
-      const entries = planData[currentWeek][d][meal] || [];
+      const entries = data[d][meal] || [];
       const chipsHtml = entries.map((e, ei) => {
         const rec = RECIPES.find(r => r.id === e.id);
         const colorClass = e.custom ? 'chip-custom' : (rec ? (MEAL_COLORS[rec.cat] || '') : '');
-        const clickHandler = (!e.custom && e.id) ? `onclick="event.stopPropagation(); showPlannerRecipe(${e.id})"` : '';
-        return `<div class="pg-recipe-chip ${colorClass}" draggable="true" ${clickHandler}
-          ondragstart="dragStart(event, ${currentWeek}, ${d}, '${meal}', ${ei})"
-          ondragend="dragEnd(event)" style="${(!e.custom && e.id) ? 'cursor:pointer;' : ''}">
-          <span class="chip-name">${e.name}</span>
-          <button class="chip-remove" onclick="event.stopPropagation(); removePlanEntry(${currentWeek}, ${d}, '${meal}', ${ei})" title="Remove">×</button>
+        const clickHandler = (!e.custom && e.id) ? `onclick="if (chipJustDragged) return; event.stopPropagation(); showPlannerRecipe(${e.id})"` : '';
+        return `<div class="pg-recipe-chip ${colorClass}" ${clickHandler}
+          onmousedown="chipPointerDown(event, ${week}, ${d}, '${meal}', ${ei})"
+          ontouchstart="chipPointerDown(event, ${week}, ${d}, '${meal}', ${ei})"
+          style="${(!e.custom && e.id) ? 'cursor:pointer;' : ''}">
+          <span class="chip-name">${escapeHtml(e.name)}</span>
+          <button class="chip-remove" onclick="event.stopPropagation(); if (chipJustDragged) return; removePlanEntry(${week}, ${d}, '${meal}', ${ei})" title="Remove">×</button>
         </div>`;
       }).join('');
-      html += `<div class="pg-cell pg-slot"
-        ondragover="dragOver(event)"
-        ondragleave="dragLeave(event)"
-        ondrop="dropEntry(event, ${currentWeek}, ${d}, '${meal}')">
+      html += `<div class="pg-cell pg-slot" data-week="${week}" data-day="${d}" data-meal="${meal}">
         ${chipsHtml}
-        <button class="pg-slot-add-btn" onclick="openAtpForSlot(${currentWeek}, ${d})">+ Add dinner</button>
+        <button class="pg-slot-add-btn" onclick="openAtpForSlot(${week}, ${d})">+ Add</button>
       </div>`;
     }
   });
+  return html;
+}
 
-  grid.innerHTML = html;
+function renderPlanner() {
+  if (chipDrag) { pendingPlannerRender = true; return; }
+  document.getElementById('weekLabel').textContent = `Week ${currentWeek + 1} · ${formatWeekLabel(currentWeek)}`;
+  document.getElementById('templateGrid').innerHTML = buildPlannerGridHtml(-1);
+  document.getElementById('plannerGrid').innerHTML = buildPlannerGridHtml(currentWeek);
+}
+
+// Copy every template meal into the current week (skips ones already on that day)
+function applyTemplateToWeek() {
+  let added = 0;
+  templateData.forEach((day, d) => {
+    MEALS.forEach(meal => {
+      const target = planData[currentWeek][d][meal] || (planData[currentWeek][d][meal] = []);
+      (day[meal] || []).forEach(e => {
+        const already = target.some(t => (e.id && t.id === e.id) || (!e.id && t.name === e.name));
+        if (!already) { target.push({ ...e }); added++; }
+      });
+    });
+  });
+  if (!added) {
+    showToast(templateData.some(day => MEALS.some(m => (day[m] || []).length))
+      ? 'This week already has everything from the template'
+      : 'The template is empty. Add meals to it first.');
+    return;
+  }
+  savePlan();
+  renderPlanner();
+  showToast(`Added ${added} meal${added === 1 ? '' : 's'} from the template to Week ${currentWeek + 1}`);
+}
+
+function clearTemplate() {
+  if (!confirm('Clear all meals from the template week?')) return;
+  templateData = emptyWeek();
+  savePlan();
+  renderPlanner();
 }
 
 function shiftWeek(dir) {
@@ -4482,33 +4620,178 @@ function shiftWeek(dir) {
 
 function clearWeek() {
   if (!confirm(`Clear all meals for Week ${currentWeek + 1}?`)) return;
-  planData[currentWeek] = Array.from({length:7}, () => ({Breakfast:[], Lunch:[], Dinner:[]}));
+  planData[currentWeek] = emptyWeek();
   savePlan();
   renderPlanner();
 }
 
 function removePlanEntry(week, day, meal, idx) {
-  planData[week][day][meal].splice(idx, 1);
+  weekData(week)[day][meal].splice(idx, 1);
   savePlan();
   renderPlanner();
 }
 
-// Drag & drop
-let dragSrc = null;
-function dragStart(e, week, day, meal, idx) {
-  dragSrc = { week, day, meal, idx };
-  e.dataTransfer.effectAllowed = 'move';
+// ── DRAG & DROP (mouse and touch) ─────────────────────────────────────────
+// Mouse: drag straight away. Touch: press and hold ~0.3s, then drag (so normal
+// scrolling still works). Within a week or within the template, a drop moves the
+// meal; between the template and a week, it copies it.
+let chipDrag = null;            // active or pending drag
+let chipJustDragged = false;    // swallows the click that follows a drop
+let pendingPlannerRender = false;
+
+function chipPointerDown(e, week, day, meal, idx) {
+  const isTouch = e.type === 'touchstart';
+  if (!isTouch && e.button !== 0) return;
+  const pt = isTouch ? e.touches[0] : e;
+  const chipEl = e.currentTarget;
+  chipDrag = { src: { week, day, meal, idx }, chipEl, isTouch, startX: pt.clientX, startY: pt.clientY,
+               x: pt.clientX, y: pt.clientY, active: false, ghost: null, timer: null };
+  if (isTouch) {
+    chipDrag.timer = setTimeout(() => { if (chipDrag) startChipDrag(); }, 300);
+    document.addEventListener('touchmove', chipTouchMove, { passive: false });
+    document.addEventListener('touchend', chipTouchEnd);
+    document.addEventListener('touchcancel', cancelChipDrag);
+  } else {
+    e.preventDefault(); // stop text selection
+    document.addEventListener('mousemove', chipMouseMove);
+    document.addEventListener('mouseup', chipMouseUp);
+  }
 }
-function dragEnd(e) { dragSrc = null; document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over')); }
-function dragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
-function dragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
-function dropEntry(e, week, day, meal) {
-  e.preventDefault();
-  e.currentTarget.classList.remove('drag-over');
-  if (!dragSrc) return;
-  const entry = planData[dragSrc.week][dragSrc.day][dragSrc.meal].splice(dragSrc.idx, 1)[0];
-  if (!planData[week][day][meal]) planData[week][day][meal] = [];
-  planData[week][day][meal].push(entry);
+
+function startChipDrag() {
+  const d = chipDrag;
+  d.active = true;
+  d.ghost = d.chipEl.cloneNode(true);
+  d.ghost.classList.add('drag-ghost');
+  d.ghost.style.width = d.chipEl.offsetWidth + 'px';
+  document.body.appendChild(d.ghost);
+  d.chipEl.classList.add('drag-source');
+  document.body.classList.add('dragging-chip');
+  if (navigator.vibrate) navigator.vibrate(15);
+  moveChipGhost(d.x, d.y);
+  d.scrollLoop = requestAnimationFrame(autoScrollWhileDragging);
+}
+
+function moveChipGhost(x, y) {
+  const d = chipDrag;
+  d.x = x; d.y = y;
+  d.ghost.style.left = x + 'px';
+  d.ghost.style.top = y + 'px';
+  const slot = slotAtPoint(x, y);
+  document.querySelectorAll('.pg-slot.drag-over').forEach(el => { if (el !== slot) el.classList.remove('drag-over'); });
+  if (slot) slot.classList.add('drag-over');
+}
+
+function slotAtPoint(x, y) {
+  const el = document.elementFromPoint(x, y);
+  return el ? el.closest('.pg-slot') : null;
+}
+
+// Scroll the page when dragging near the top or bottom edge
+function autoScrollWhileDragging() {
+  const d = chipDrag;
+  if (!d || !d.active) return;
+  const edge = 70, h = window.innerHeight;
+  if (d.y < edge) window.scrollBy(0, -Math.ceil((edge - d.y) / 6));
+  else if (d.y > h - edge) window.scrollBy(0, Math.ceil((d.y - (h - edge)) / 6));
+  moveChipGhost(d.x, d.y);
+  d.scrollLoop = requestAnimationFrame(autoScrollWhileDragging);
+}
+
+function chipMouseMove(e) {
+  const d = chipDrag;
+  if (!d) return;
+  if (!d.active) {
+    if (Math.hypot(e.clientX - d.startX, e.clientY - d.startY) < 5) return;
+    d.x = e.clientX; d.y = e.clientY;
+    startChipDrag();
+  }
+  moveChipGhost(e.clientX, e.clientY);
+}
+
+function chipMouseUp(e) {
+  document.removeEventListener('mousemove', chipMouseMove);
+  document.removeEventListener('mouseup', chipMouseUp);
+  finishChipDrag(e.clientX, e.clientY);
+}
+
+function chipTouchMove(e) {
+  const d = chipDrag;
+  if (!d) return;
+  const t = e.touches[0];
+  if (!d.active) {
+    // Finger moved before the hold finished: it's a scroll, not a drag
+    if (Math.hypot(t.clientX - d.startX, t.clientY - d.startY) > 10) cancelChipDrag();
+    return;
+  }
+  e.preventDefault(); // stop the page scrolling while dragging
+  moveChipGhost(t.clientX, t.clientY);
+}
+
+function chipTouchEnd(e) {
+  const t = e.changedTouches[0];
+  const wasActive = chipDrag && chipDrag.active;
+  removeTouchListeners();
+  if (wasActive) e.preventDefault(); // no click/zoom after a drop
+  finishChipDrag(t.clientX, t.clientY);
+}
+
+function removeTouchListeners() {
+  document.removeEventListener('touchmove', chipTouchMove, { passive: false });
+  document.removeEventListener('touchend', chipTouchEnd);
+  document.removeEventListener('touchcancel', cancelChipDrag);
+}
+
+function cancelChipDrag() {
+  removeTouchListeners();
+  cleanupChipDrag();
+}
+
+function cleanupChipDrag() {
+  const d = chipDrag;
+  if (!d) return;
+  clearTimeout(d.timer);
+  cancelAnimationFrame(d.scrollLoop);
+  if (d.ghost) d.ghost.remove();
+  d.chipEl.classList.remove('drag-source');
+  document.body.classList.remove('dragging-chip');
+  document.querySelectorAll('.pg-slot.drag-over').forEach(el => el.classList.remove('drag-over'));
+  chipDrag = null;
+  if (pendingPlannerRender) { pendingPlannerRender = false; renderPlanner(); }
+}
+
+function finishChipDrag(x, y) {
+  const d = chipDrag;
+  if (!d) return;
+  const wasActive = d.active;
+  const slot = wasActive ? slotAtPoint(x, y) : null;
+  cleanupChipDrag();
+  if (!wasActive) return;
+  chipJustDragged = true;
+  setTimeout(() => { chipJustDragged = false; }, 50);
+  if (!slot) return;
+  dropPlanEntry(d.src, {
+    week: parseInt(slot.dataset.week, 10),
+    day: parseInt(slot.dataset.day, 10),
+    meal: slot.dataset.meal
+  });
+}
+
+function dropPlanEntry(src, dst) {
+  if (src.week === dst.week && src.day === dst.day && src.meal === dst.meal) return;
+  const srcList = weekData(src.week)[src.day][src.meal];
+  const entry = srcList[src.idx];
+  if (!entry) return;
+  const dstDay = weekData(dst.week)[dst.day];
+  if (!dstDay[dst.meal]) dstDay[dst.meal] = [];
+  const isCopy = (src.week === -1) !== (dst.week === -1);
+  if (isCopy) {
+    dstDay[dst.meal].push({ ...entry });
+    showToast(`Copied ${entry.name} to ${dst.week === -1 ? 'the template' : 'Week ' + (dst.week + 1)} · ${DAY_FULL[dst.day]}`);
+  } else {
+    srcList.splice(src.idx, 1);
+    dstDay[dst.meal].push(entry);
+  }
   savePlan();
   renderPlanner();
 }
@@ -4558,25 +4841,27 @@ function confirmAddToPlan() {
   const week = parseInt(document.getElementById('atpWeek').value);
   const day  = parseInt(document.getElementById('atpDay').value);
   const meal = document.getElementById('atpMeal').value;
-  if (!planData[week][day][meal]) planData[week][day][meal] = [];
+  const days = weekData(week);
+  if (!days[day][meal]) days[day][meal] = [];
+  const where = week === -1 ? `the template · ${DAY_FULL[day]}` : `Week ${week+1} ${DAY_FULL[day]}`;
 
   if (atpMode === 'custom') {
     const text = document.getElementById('atpCustomText').value.trim();
     if (!text) { document.getElementById('atpCustomText').focus(); return; }
-    planData[week][day][meal].push({ id: null, name: text, custom: true });
+    days[day][meal].push({ id: null, name: text, custom: true });
     savePlan();
     closeAtp();
     renderPlanner();
-    showToast(`"${text}" added to Week ${week+1} ${DAY_FULL[day]}!`);
+    showToast(`"${text}" added to ${where}!`);
   } else {
     if (!atpRecipeId) return;
     const rec = RECIPES.find(r => r.id === atpRecipeId);
     if (!rec) return;
-    planData[week][day][meal].push({ id: rec.id, name: rec.name });
+    days[day][meal].push({ id: rec.id, name: rec.name });
     savePlan();
     closeAtp();
     renderPlanner();
-    showToast(`${rec.name} added to Week ${week+1} ${DAY_FULL[day]}!`);
+    showToast(`${rec.name} added to ${where}!`);
   }
 }
 
@@ -4681,9 +4966,11 @@ function applyRemoteFavs(aaronIds, katieIds) {
   filter();
 }
 
-function applyRemotePlan(plan) {
+function applyRemotePlan(plan, template) {
   planData = plan;
+  templateData = template;
   try { localStorage.setItem('mealPlan_v1', JSON.stringify(planData)); } catch(e) {}
+  try { localStorage.setItem('mealTemplate_v1', JSON.stringify(templateData)); } catch(e) {}
   if (document.getElementById('plannerView').style.display === 'block') renderPlanner();
 }
 
@@ -4785,11 +5072,16 @@ function canon(v) {
   return JSON.stringify(v === undefined ? null : v);
 }
 
-// planData is [week][day] → stored in Firestore as plan.w{week}d{day}
+// planData is [week][day] → stored in Firestore as plan.w{week}d{day};
+// the template week is stored alongside as plan.t{day}
 function planToMap(plan) {
   const m = {};
   plan.forEach((week, w) => week.forEach((day, d) => { m[`w${w}d${d}`] = JSON.parse(JSON.stringify(day)); }));
+  templateData.forEach((day, d) => { m[`t${d}`] = JSON.parse(JSON.stringify(day)); });
   return m;
+}
+function mapToTemplate(m) {
+  return Array.from({ length: 7 }, (_, d) => m[`t${d}`] || { Breakfast: [], Lunch: [], Dinner: [] });
 }
 function mapToPlan(m) {
   return [0, 1].map(w => Array.from({ length: 7 }, (_, d) =>
@@ -4823,8 +5115,8 @@ function onSnap(snap) {
     const updates = { updatedAt: fs.serverTimestamp() };
     if (aaronFavs.size) updates.favs_aaron = fs.arrayUnion(...aaronFavs);
     if (katieFavs.size) updates.favs_katie = fs.arrayUnion(...katieFavs);
-    const remotePlan = mapToPlan(data.plan || {});
-    if (planIsEmpty(remotePlan) && !planIsEmpty(planData)) updates.plan = planToMap(planData);
+    const remoteAll = [...mapToPlan(data.plan || {}), mapToTemplate(data.plan || {})];
+    if (planIsEmpty(remoteAll) && !planIsEmpty([...planData, templateData])) updates.plan = planToMap(planData);
     fs.updateDoc(ref, updates).catch(syncError);
     return; // the write triggers another snapshot with the merged data
   }
@@ -4833,7 +5125,7 @@ function onSnap(snap) {
   const planMap = data.plan || {};
   lastPlanJson = Object.fromEntries(Object.entries(planMap).map(([k, v]) => [k, canon(v)]));
   applyRemoteFavs(data.favs_aaron || [], data.favs_katie || []);
-  applyRemotePlan(mapToPlan(planMap));
+  applyRemotePlan(mapToPlan(planMap), mapToTemplate(planMap));
 
   if (snap.metadata.hasPendingWrites) setSyncStatus('☁ Saving…', 'ok');
   else if (snap.metadata.fromCache) setSyncStatus('☁ Offline – will sync', 'warn');
@@ -4928,4 +5220,3 @@ if (db) {
 </script>
 </body>
 </html>
-`;
